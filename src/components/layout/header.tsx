@@ -1,5 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { useState } from "react"
 
 export function Header() {
@@ -11,12 +12,12 @@ export function Header() {
         <div className="flex h-16 sm:h-18 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <a className="flex items-center space-x-2 sm:space-x-3" href="/">
+            <Link className="flex items-center space-x-2 sm:space-x-3" href="/">
               <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-sm sm:text-base">A</span>
               </div>
               <span className="font-bold text-lg sm:text-xl text-gray-900">AlphaAkki</span>
-            </a>
+            </Link>
           </div>
           
           {/* Desktop Navigation */}

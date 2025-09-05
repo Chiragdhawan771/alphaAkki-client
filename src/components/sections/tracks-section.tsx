@@ -1,7 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 
 const tracks = [
   {
@@ -103,7 +101,7 @@ export function TracksSection() {
         </div>
         
         <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
-          {tracks.slice(0, 6).map((track, index) => (
+          {tracks.slice(0, 6).map((track) => (
             <Card key={track.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 rounded-3xl bg-white">
               <div className="relative h-48 sm:h-52">
                 <div className={`absolute inset-0 bg-gradient-to-br ${track.color}`}></div>
