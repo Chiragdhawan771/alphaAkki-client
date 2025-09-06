@@ -1,88 +1,34 @@
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { courseService } from "@/services"
 
-const tracks = [
-  {
-    id: "web-development",
-    title: "Web Development",
-    description: "Master modern web technologies including React, Next.js, and full-stack development with hands-on projects.",
-    image: "/assets/home-page-cover.png",
-    courses: 12,
-    lessons: 85,
-    duration: "40+ hours",
-    rating: 4.9,
-    icon: "🌐",
-    color: "from-blue-100 to-indigo-200",
-    gradient: "from-blue-500 to-indigo-600"
-  },
-  {
-    id: "ui-ux-design",
-    title: "UI/UX Design",
-    description: "Create stunning user experiences with design thinking, Figma, prototyping, and user research methodologies.",
-    image: "/assets/home-page-cover.png",
-    courses: 8,
-    lessons: 52,
-    duration: "30+ hours",
-    rating: 4.8,
-    icon: "🎨",
-    color: "from-pink-100 to-rose-200",
-    gradient: "from-pink-500 to-rose-600"
-  },
-  {
-    id: "digital-marketing",
-    title: "Digital Marketing",
-    description: "Drive business growth with SEO, social media marketing, content strategy, and data-driven campaigns.",
-    image: "/assets/home-page-cover.png",
-    courses: 10,
-    lessons: 67,
-    duration: "35+ hours",
-    rating: 4.7,
-    icon: "📈",
-    color: "from-green-100 to-emerald-200",
-    gradient: "from-green-500 to-emerald-600"
-  },
-  {
-    id: "data-science",
-    title: "Data Science",
-    description: "Analyze data and build machine learning models using Python, SQL, and advanced analytics tools.",
-    image: "/assets/home-page-cover.png",
-    courses: 15,
-    lessons: 98,
-    duration: "50+ hours",
-    rating: 4.9,
-    icon: "📊",
-    color: "from-purple-100 to-violet-200",
-    gradient: "from-purple-500 to-violet-600"
-  },
-  {
-    id: "mobile-development",
-    title: "Mobile Development",
-    description: "Build native and cross-platform mobile apps for iOS and Android using React Native and Flutter.",
-    image: "/assets/home-page-cover.png",
-    courses: 9,
-    lessons: 63,
-    duration: "38+ hours",
-    rating: 4.8,
-    icon: "📱",
-    color: "from-orange-100 to-red-200",
-    gradient: "from-orange-500 to-red-600"
-  },
-  {
-    id: "cloud-computing",
-    title: "Cloud Computing",
-    description: "Deploy and scale applications using AWS, Azure, Docker, Kubernetes, and modern DevOps practices.",
-    image: "/assets/home-page-cover.png",
-    courses: 11,
-    lessons: 74,
-    duration: "42+ hours",
-    rating: 4.8,
-    icon: "☁️",
-    color: "from-cyan-100 to-teal-200",
-    gradient: "from-cyan-500 to-teal-600"
-  }
-]
+interface Track {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  courses: number;
+  lessons: number;
+  duration: string;
+  rating: number;
+  icon: string;
+  color: string;
+  gradient: string;
+}
 
 export function TracksSection() {
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    const fetchTracks = async () => {
+      const response = await trackService.getTracks();
+      setTracks(response.data);
+    };
+    fetchTracks();
+  }, []);
+
   return (
     <section className="bg-gradient-to-br from-gray-50 to-white py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -101,7 +47,7 @@ export function TracksSection() {
         </div>
         
         <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
-          {tracks.slice(0, 6).map((track) => (
+          {tracks.slice(0, 6).map((track: Track) => (
             <Card key={track.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 rounded-3xl bg-white">
               <div className="relative h-48 sm:h-52">
                 <div className={`absolute inset-0 bg-gradient-to-br ${track.color}`}></div>
