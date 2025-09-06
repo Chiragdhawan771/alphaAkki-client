@@ -2,9 +2,11 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, logout, isAuthenticated } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 border-b border-gray-200/50 shadow-sm">
@@ -41,14 +43,40 @@ export function Header() {
           
           {/* Actions */}
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <Link href="/signup/" className="hidden sm:block text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
-              Sign Up
-            </Link>
-            <Link href="/login/">
-            <Button size="sm" className="h-9 sm:h-10 px-4 sm:px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-              Sign In
-            </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                {/* Authenticated User Menu */}
+                <Link href="/dashboard" className="hidden sm:block text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
+                  Dashboard
+                </Link>
+                <div className="flex items-center space-x-3">
+                  <div className="hidden md:block text-right">
+                    <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-xs text-gray-500">{user?.role}</p>
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-orange-700">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  </div>
+                  <Button onClick={logout} variant="outline" size="sm">
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Guest User Menu */}
+                <Link href="/signup/" className="hidden sm:block text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
+                  Sign Up
+                </Link>
+                <Link href="/login/">
+                  <Button size="sm" className="h-9 sm:h-10 px-4 sm:px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                    Sign In
+                  </Button>
+                </Link>
+              </>
+            )}
             
             {/* Mobile menu button */}
             <button 

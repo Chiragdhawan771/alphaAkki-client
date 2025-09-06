@@ -1,11 +1,13 @@
 "use client"
 import { useState } from "react"
 import type React from "react"
-
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/contexts/AuthContext"
+import ProtectedRoute from "@/components/ProtectedRoute"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -15,8 +17,10 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const { signup, isLoading } = useAuth()
+  const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -25,26 +29,33 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!")
+      setError("Passwords don't match!")
       return
     }
     if (!agreedToTerms) {
-      alert("Please agree to the terms and conditions")
+      setError("Please agree to the terms and conditions")
       return
     }
 
-    setIsLoading(true)
-
-    // Simulate signup process
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    console.log("Signup attempt:", formData)
-    setIsLoading(false)
+    try {
+      await signup({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      })
+      router.push("/dashboard")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Signup failed")
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+    <ProtectedRoute requireAuth={false}>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
 
       <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
@@ -68,6 +79,11 @@ export default function SignupPage() {
 
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
+                {error && (
+                  <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                    {error}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
@@ -175,9 +191,16 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-11 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full h-11 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Creating account..." : "Create Account"}
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating account...</span>
+                    </div>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
 
                 <div className="text-center text-sm text-gray-600">
@@ -234,6 +257,7 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }
