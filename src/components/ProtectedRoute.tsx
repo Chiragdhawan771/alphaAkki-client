@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { Header } from './layout/header';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -50,7 +51,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return null;
   }
 
-  return <>{children}</>;
+  return <>
+  {children}</>;
 };
 
 export default ProtectedRoute;
