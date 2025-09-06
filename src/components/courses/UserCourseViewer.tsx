@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Play, CheckCircle, Clock, BookOpen, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import simplifiedCourseService, { SimplifiedCourse, Enrollment } from '@/services/simplifiedCourseService';
+import { Star, Clock, Users, BookOpen, Play, CheckCircle, Award, Tag } from 'lucide-react';
+import CourseDetailModal from './CourseDetailModal';
 
 const UserCourseViewer: React.FC = () => {
   const [enrolledCourses, setEnrolledCourses] = useState<Enrollment[]>([]);
@@ -21,6 +22,8 @@ const UserCourseViewer: React.FC = () => {
   const [currentVideo, setCurrentVideo] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'enrolled' | 'browse'>('enrolled');
+  const [detailModalCourse, setDetailModalCourse] = useState<SimplifiedCourse | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,6 +58,7 @@ const UserCourseViewer: React.FC = () => {
         description: "Successfully enrolled in course"
       });
       fetchData(); // Refresh data
+      setIsDetailModalOpen(false); // Close modal after enrollment
     } catch (error: any) {
       toast({
         title: "Error",
@@ -62,6 +66,11 @@ const UserCourseViewer: React.FC = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleViewCourseDetails = (course: SimplifiedCourse) => {
+    setDetailModalCourse(course);
+    setIsDetailModalOpen(true);
   };
 
   const handleOpenCourse = async (courseId: string) => {
@@ -203,7 +212,7 @@ const UserCourseViewer: React.FC = () => {
                       
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Videos:</span>
-                        <span className="font-medium">{enrollment.course.videos.length}</span>
+                        <span className="font-medium">{enrollment.course.videos?.length || 0}</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
@@ -267,12 +276,63 @@ const UserCourseViewer: React.FC = () => {
                         {course.description}
                       </p>
                       
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Videos:</span>
-                          <span className="font-medium">{course.videos.length}</span>
+                      <div className="space-y-3 mb-4">
+                        {/* Rating */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="font-medium text-sm">
+                              {course.averageRating > 0 ? course.averageRating.toFixed(1) : 'No ratings'}
+                            </span>
+                            {course.totalReviews > 0 && (
+                              <span className="text-xs text-gray-500">({course.totalReviews} reviews)</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex justify-between text-sm">
+
+                        {/* Short Description */}
+                        {course.shortDescription && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {course.shortDescription}
+                          </p>
+                        )}
+
+                        {/* Course Details */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span>{course.estimatedDuration ? `${course.estimatedDuration}h` : 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Users className="h-3 w-3 text-gray-400" />
+                            <span>{course.enrollmentCount} enrolled</span>
+                          </div>
+                        </div>
+
+                        {/* Category & Tags */}
+                        <div className="space-y-2">
+                          {course.category && (
+                            <div className="flex items-center space-x-1">
+                              <BookOpen className="h-3 w-3 text-gray-400" />
+                              <span className="text-xs text-gray-600">{course.category}</span>
+                            </div>
+                          )}
+                          {course.tags && course.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {course.tags.slice(0, 3).map((tag, index) => (
+                                <Badge key={index} variant="outline" className="text-xs px-1 py-0">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {course.tags.length > 3 && (
+                                <span className="text-xs text-gray-500">+{course.tags.length - 3} more</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Instructor */}
+                        <div className="flex justify-between text-sm pt-2 border-t">
                           <span className="text-gray-500">Instructor:</span>
                           <span className="font-medium">
                             {course.instructor.firstName} {course.instructor.lastName}
@@ -280,23 +340,31 @@ const UserCourseViewer: React.FC = () => {
                         </div>
                       </div>
 
-                      {isEnrolled ? (
+                      <div className="flex space-x-2">
                         <Button 
-                          className="w-full" 
+                          className="flex-1" 
                           variant="outline"
-                          onClick={() => handleOpenCourse(course._id)}
+                          onClick={() => handleViewCourseDetails(course)}
                         >
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          View Course
+                          View Details
                         </Button>
-                      ) : (
-                        <Button 
-                          className="w-full" 
-                          onClick={() => handleEnrollInCourse(course._id)}
-                        >
-                          Enroll Now
-                        </Button>
-                      )}
+                        {isEnrolled ? (
+                          <Button 
+                            className="flex-1" 
+                            onClick={() => handleOpenCourse(course._id)}
+                          >
+                            <Play className="h-4 w-4 mr-2" />
+                            Continue
+                          </Button>
+                        ) : (
+                          <Button 
+                            className="flex-1" 
+                            onClick={() => handleEnrollInCourse(course._id)}
+                          >
+                            Enroll Now
+                          </Button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -320,7 +388,7 @@ const UserCourseViewer: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[70vh]">
               {/* Video Player */}
               <div className="lg:col-span-2">
-                {selectedCourse.course.videos.length > 0 ? (
+                {selectedCourse.course.videos?.length > 0 ? (
                   <div className="space-y-4">
                     <div className="aspect-video bg-black rounded-lg overflow-hidden">
                       <video
@@ -340,7 +408,7 @@ const UserCourseViewer: React.FC = () => {
                           {selectedCourse.course.videos[currentVideo]?.title}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          Video {currentVideo + 1} of {selectedCourse.course.videos.length}
+                          Video {currentVideo + 1} of {selectedCourse.course.videos?.length || 0}
                         </p>
                       </div>
                       
@@ -389,7 +457,7 @@ const UserCourseViewer: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {selectedCourse.course.videos.map((video: any, index: number) => (
+                  {selectedCourse.course.videos?.map((video: any, index: number) => (
                     <div
                       key={index}
                       className={`p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -409,19 +477,28 @@ const UserCourseViewer: React.FC = () => {
                           <div>
                             <p className="font-medium text-sm">{video.title}</p>
                             <p className="text-xs text-gray-500">
-                              {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, '0')}
+                              {video.duration ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : 'N/A'}
                             </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </div>
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Course Detail Modal */}
+      <CourseDetailModal
+        course={detailModalCourse}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onEnroll={handleEnrollInCourse}
+        isEnrolled={detailModalCourse ? enrolledCourses.some(e => e.course._id === detailModalCourse._id) : false}
+      />
     </div>
   );
 };

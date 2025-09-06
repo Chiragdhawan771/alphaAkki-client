@@ -11,6 +11,7 @@ import { enrollmentService, courseService } from '@/services';
 import SimplifiedCourseManager from '@/components/courses/SimplifiedCourseManager';
 import UserCourseViewer from '@/components/courses/UserCourseViewer';
 import { BookOpen, Plus, Settings, BarChart3, Users, DollarSign } from 'lucide-react';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -282,8 +283,10 @@ export default function DashboardPage() {
                   <span className="text-white font-bold text-xl">A</span>
                 </div>
                 <div>
+                  <Link href="/" className='decoration-none'>
                   <h1 className="text-2xl font-bold text-gray-900">AlphaAkki LMS</h1>
                   <p className="text-sm text-gray-500">Learning Management System</p>
+                  </Link>
                 </div>
               </div>
 

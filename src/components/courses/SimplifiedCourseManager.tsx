@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Upload, Play, Trash2, Edit, Eye, Users } from 'lucide-react';
+import { Edit, Eye, Plus, Play, Trash2, Upload, Users, Video } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import simplifiedCourseService, { SimplifiedCourse, CreateCourseData, AddVideoData } from '@/services/simplifiedCourseService';
+import VideoPlayer from './VideoPlayer';
 
 const SimplifiedCourseManager: React.FC = () => {
   const [courses, setCourses] = useState<SimplifiedCourse[]>([]);
@@ -29,6 +30,9 @@ const SimplifiedCourseManager: React.FC = () => {
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [showAddVideo, setShowAddVideo] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<SimplifiedCourse | null>(null);
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [editCourseData, setEditCourseData] = useState<Partial<SimplifiedCourse>>({});
+  const [watchingVideoIndex, setWatchingVideoIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Course creation form
@@ -36,7 +40,15 @@ const SimplifiedCourseManager: React.FC = () => {
     title: '',
     description: '',
     price: 0,
-    type: 'paid'
+    type: 'paid',
+    thumbnail: '',
+    previewVideo: '',
+    shortDescription: '',
+    learningOutcomes: [],
+    prerequisites: [],
+    estimatedDuration: 0,
+    category: '',
+    tags: []
   });
 
   // Video upload form
@@ -80,7 +92,20 @@ const SimplifiedCourseManager: React.FC = () => {
     try {
       const course = await simplifiedCourseService.createCourse(newCourse);
       setCourses([course, ...courses]);
-      setNewCourse({ title: '', description: '', price: 0, type: 'paid' });
+      setNewCourse({ 
+        title: '', 
+        description: '', 
+        price: 0, 
+        type: 'paid',
+        thumbnail: '',
+        previewVideo: '',
+        shortDescription: '',
+        learningOutcomes: [],
+        prerequisites: [],
+        estimatedDuration: 0,
+        category: '',
+        tags: []
+      });
       setShowCreateCourse(false);
       
       toast({
@@ -175,6 +200,53 @@ const SimplifiedCourseManager: React.FC = () => {
     }
   };
 
+  const handleEditCourse = async () => {
+    if (!selectedCourse || !editCourseData.title || !editCourseData.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const updatedCourse = await simplifiedCourseService.updateCourse(selectedCourse._id, editCourseData);
+      setCourses(courses.map(c => c._id === selectedCourse._id ? updatedCourse : c));
+      setSelectedCourse(updatedCourse);
+      setIsEditingCourse(false);
+      
+      toast({
+        title: "Success!",
+        description: "Course updated successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update course",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const startEditingCourse = (course: SimplifiedCourse) => {
+    setEditCourseData({
+      title: course.title,
+      description: course.description,
+      price: course.price,
+      type: course.type,
+      thumbnail: course.thumbnail || '',
+      previewVideo: course.previewVideo || '',
+      shortDescription: course.shortDescription || '',
+      learningOutcomes: course.learningOutcomes || [],
+      prerequisites: course.prerequisites || [],
+      estimatedDuration: course.estimatedDuration || 0,
+      category: course.category || '',
+      tags: course.tags || []
+    });
+    setIsEditingCourse(true);
+  };
+
   const handleDeleteCourse = async (courseId: string) => {
     if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
       return;
@@ -229,32 +301,54 @@ const SimplifiedCourseManager: React.FC = () => {
               Create Course
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>Create New Course</DialogTitle>
               <DialogDescription>
                 Fill in the details to create a new course
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Course Title *</label>
+                  <Input
+                    value={newCourse.title}
+                    onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                    placeholder="Enter course title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <Input
+                    value={newCourse.category || ''}
+                    onChange={(e) => setNewCourse({ ...newCourse, category: e.target.value })}
+                    placeholder="e.g., Web Development, Design"
+                  />
+                </div>
+              </div>
+              
               <div>
-                <label className="block text-sm font-medium mb-2">Course Title</label>
+                <label className="block text-sm font-medium mb-2">Short Description</label>
                 <Input
-                  value={newCourse.title}
-                  onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-                  placeholder="Enter course title"
+                  value={newCourse.shortDescription || ''}
+                  onChange={(e) => setNewCourse({ ...newCourse, shortDescription: e.target.value })}
+                  placeholder="Brief course summary (max 200 characters)"
+                  maxLength={200}
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
+                <label className="block text-sm font-medium mb-2">Full Description *</label>
                 <Textarea
                   value={newCourse.description}
                   onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                  placeholder="Enter course description"
-                  rows={3}
+                  placeholder="Enter detailed course description"
+                  rows={4}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Price ($)</label>
                   <Input
@@ -277,6 +371,73 @@ const SimplifiedCourseManager: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Duration (hours)</label>
+                  <Input
+                    type="number"
+                    value={newCourse.estimatedDuration || 0}
+                    onChange={(e) => setNewCourse({ ...newCourse, estimatedDuration: Number(e.target.value) })}
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Thumbnail URL</label>
+                  <Input
+                    value={newCourse.thumbnail || ''}
+                    onChange={(e) => setNewCourse({ ...newCourse, thumbnail: e.target.value })}
+                    placeholder="https://example.com/thumbnail.jpg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Preview Video URL</label>
+                  <Input
+                    value={newCourse.previewVideo || ''}
+                    onChange={(e) => setNewCourse({ ...newCourse, previewVideo: e.target.value })}
+                    placeholder="https://example.com/preview.mp4"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Learning Outcomes</label>
+                <Textarea
+                  value={newCourse.learningOutcomes?.join('\n') || ''}
+                  onChange={(e) => setNewCourse({ 
+                    ...newCourse, 
+                    learningOutcomes: e.target.value.split('\n').filter(item => item.trim()) 
+                  })}
+                  placeholder="What will students learn? (one per line)\ne.g., Build responsive websites\nMaster React fundamentals"
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Prerequisites</label>
+                <Textarea
+                  value={newCourse.prerequisites?.join('\n') || ''}
+                  onChange={(e) => setNewCourse({ 
+                    ...newCourse, 
+                    prerequisites: e.target.value.split('\n').filter(item => item.trim()) 
+                  })}
+                  placeholder="What should students know beforehand? (one per line)\ne.g., Basic HTML/CSS knowledge\nFamiliarity with JavaScript"
+                  rows={2}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Tags</label>
+                <Input
+                  value={newCourse.tags?.join(', ') || ''}
+                  onChange={(e) => setNewCourse({ 
+                    ...newCourse, 
+                    tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                  })}
+                  placeholder="Enter tags separated by commas (e.g., react, javascript, frontend)"
+                />
               </div>
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setShowCreateCourse(false)}>
@@ -322,6 +483,9 @@ const SimplifiedCourseManager: React.FC = () => {
                     <Button size="sm" variant="outline" onClick={() => setSelectedCourse(course)}>
                       <Eye className="h-3 w-3" />
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => { setSelectedCourse(course); startEditingCourse(course); }}>
+                      <Edit className="h-3 w-3" />
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => handleDeleteCourse(course._id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -336,7 +500,7 @@ const SimplifiedCourseManager: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Videos:</span>
-                    <span className="font-medium">{course.videos.length}</span>
+                    <span className="font-medium">{course?.videos?.length || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Enrollments:</span>
@@ -436,23 +600,228 @@ const SimplifiedCourseManager: React.FC = () => {
 
       {/* Course Details Modal */}
       {selectedCourse && (
-        <Dialog open={!!selectedCourse} onOpenChange={() => setSelectedCourse(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <Dialog open={!!selectedCourse} onOpenChange={() => { setSelectedCourse(null); setIsEditingCourse(false); }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
-              <DialogTitle>{selectedCourse.title}</DialogTitle>
+              <DialogTitle className="flex items-center justify-between">
+                <span>{selectedCourse.title}</span>
+                {!isEditingCourse && (
+                  <Button size="sm" variant="outline" onClick={() => startEditingCourse(selectedCourse)}>
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit Course
+                  </Button>
+                )}
+              </DialogTitle>
               <DialogDescription>
-                Course details and video management
+                {isEditingCourse ? 'Edit course details' : 'Course details and video management'}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-gray-600">{selectedCourse.description}</p>
-              </div>
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+              {isEditingCourse ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Course Title *</label>
+                      <Input
+                        value={editCourseData.title || ''}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, title: e.target.value })}
+                        placeholder="Enter course title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Category</label>
+                      <Input
+                        value={editCourseData.category || ''}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, category: e.target.value })}
+                        placeholder="e.g., Web Development, Design"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Short Description</label>
+                    <Input
+                      value={editCourseData.shortDescription || ''}
+                      onChange={(e) => setEditCourseData({ ...editCourseData, shortDescription: e.target.value })}
+                      placeholder="Brief course summary (max 200 characters)"
+                      maxLength={200}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Full Description *</label>
+                    <Textarea
+                      value={editCourseData.description || ''}
+                      onChange={(e) => setEditCourseData({ ...editCourseData, description: e.target.value })}
+                      placeholder="Enter detailed course description"
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Price ($)</label>
+                      <Input
+                        type="number"
+                        value={editCourseData.price || 0}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, price: Number(e.target.value) })}
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Type</label>
+                      <Select value={editCourseData.type} onValueChange={(value: 'free' | 'paid') => setEditCourseData({ ...editCourseData, type: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Duration (hours)</label>
+                      <Input
+                        type="number"
+                        value={editCourseData.estimatedDuration || 0}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, estimatedDuration: Number(e.target.value) })}
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Thumbnail URL</label>
+                      <Input
+                        value={editCourseData.thumbnail || ''}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, thumbnail: e.target.value })}
+                        placeholder="https://example.com/thumbnail.jpg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Preview Video URL</label>
+                      <Input
+                        value={editCourseData.previewVideo || ''}
+                        onChange={(e) => setEditCourseData({ ...editCourseData, previewVideo: e.target.value })}
+                        placeholder="https://example.com/preview.mp4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Learning Outcomes</label>
+                    <Textarea
+                      value={editCourseData.learningOutcomes?.join('\n') || ''}
+                      onChange={(e) => setEditCourseData({ 
+                        ...editCourseData, 
+                        learningOutcomes: e.target.value.split('\n').filter(item => item.trim()) 
+                      })}
+                      placeholder="What will students learn? (one per line)\ne.g., Build responsive websites\nMaster React fundamentals"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Prerequisites</label>
+                    <Textarea
+                      value={editCourseData.prerequisites?.join('\n') || ''}
+                      onChange={(e) => setEditCourseData({ 
+                        ...editCourseData, 
+                        prerequisites: e.target.value.split('\n').filter(item => item.trim()) 
+                      })}
+                      placeholder="What should students know beforehand? (one per line)\ne.g., Basic HTML/CSS knowledge\nFamiliarity with JavaScript"
+                      rows={2}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Tags</label>
+                    <Input
+                      value={editCourseData.tags?.join(', ') || ''}
+                      onChange={(e) => setEditCourseData({ 
+                        ...editCourseData, 
+                        tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                      })}
+                      placeholder="Enter tags separated by commas (e.g., react, javascript, frontend)"
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 pt-4 border-t">
+                    <Button variant="outline" onClick={() => setIsEditingCourse(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleEditCourse}>
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold mb-2">Course Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Category:</span> {selectedCourse.category || 'Not specified'}</div>
+                        <div><span className="font-medium">Duration:</span> {selectedCourse.estimatedDuration || 0} hours</div>
+                        <div><span className="font-medium">Price:</span> ${selectedCourse.price}</div>
+                        <div><span className="font-medium">Type:</span> {selectedCourse.type}</div>
+                        {selectedCourse.tags && selectedCourse.tags.length > 0 && (
+                          <div><span className="font-medium">Tags:</span> {selectedCourse.tags.join(', ')}</div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {selectedCourse.thumbnail && (
+                      <div>
+                        <h3 className="font-semibold mb-2">Thumbnail</h3>
+                        <img src={selectedCourse.thumbnail} alt="Course thumbnail" className="w-full h-32 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2">Description</h3>
+                    <p className="text-gray-600">{selectedCourse.description}</p>
+                  </div>
+                  
+                  {selectedCourse.shortDescription && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Short Description</h3>
+                      <p className="text-gray-600">{selectedCourse.shortDescription}</p>
+                    </div>
+                  )}
+                  
+                  {selectedCourse.learningOutcomes && selectedCourse.learningOutcomes.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Learning Outcomes</h3>
+                      <ul className="list-disc list-inside space-y-1 text-gray-600">
+                        {selectedCourse.learningOutcomes.map((outcome, index) => (
+                          <li key={index}>{outcome}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {selectedCourse.prerequisites && selectedCourse.prerequisites.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Prerequisites</h3>
+                      <ul className="list-disc list-inside space-y-1 text-gray-600">
+                        {selectedCourse.prerequisites.map((prereq, index) => (
+                          <li key={index}>{prereq}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
               
               <div>
-                <h3 className="font-semibold mb-4">Videos ({selectedCourse.videos.length})</h3>
-                {selectedCourse.videos.length === 0 ? (
+                <h3 className="font-semibold mb-4">Videos ({selectedCourse.videos?.length || 0})</h3>
+                {!selectedCourse.videos || selectedCourse.videos.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No videos uploaded yet. Add your first video to get started.
                   </div>
@@ -469,18 +838,51 @@ const SimplifiedCourseManager: React.FC = () => {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveVideo(selectedCourse._id, index)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setWatchingVideoIndex(index)}
+                            title="Watch Video"
+                          >
+                            <Video className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRemoveVideo(selectedCourse._id, index)}
+                            title="Remove Video"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Video Watching Dialog */}
+      {selectedCourse && watchingVideoIndex !== null && selectedCourse.videos?.[watchingVideoIndex] && (
+        <Dialog open={watchingVideoIndex !== null} onOpenChange={() => setWatchingVideoIndex(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>Watch Video: {selectedCourse.videos[watchingVideoIndex].title}</DialogTitle>
+              <DialogDescription>
+                Admin preview of course video
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <VideoPlayer
+                video={selectedCourse.videos[watchingVideoIndex]}
+                courseId={selectedCourse._id}
+                videoIndex={watchingVideoIndex}
+                autoPlay={true}
+              />
             </div>
           </DialogContent>
         </Dialog>

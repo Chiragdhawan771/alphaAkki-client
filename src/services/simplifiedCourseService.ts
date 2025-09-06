@@ -16,7 +16,16 @@ export interface SimplifiedCourse {
   status: 'draft' | 'published' | 'archived';
   enrollmentCount: number;
   thumbnail?: string;
-  videos: {
+  previewVideo?: string;
+  shortDescription?: string;
+  learningOutcomes?: string[];
+  prerequisites?: string[];
+  estimatedDuration?: number;
+  category?: string;
+  tags?: string[];
+  averageRating: number;
+  totalReviews: number;
+  videos?: {
     title: string;
     videoUrl: string;
     videoKey: string;
@@ -45,6 +54,13 @@ export interface CreateCourseData {
   price: number;
   type?: 'free' | 'paid';
   thumbnail?: string;
+  previewVideo?: string;
+  shortDescription?: string;
+  learningOutcomes?: string[];
+  prerequisites?: string[];
+  estimatedDuration?: number;
+  category?: string;
+  tags?: string[];
 }
 
 export interface UpdateCourseData {
@@ -53,6 +69,13 @@ export interface UpdateCourseData {
   price?: number;
   type?: 'free' | 'paid';
   thumbnail?: string;
+  previewVideo?: string;
+  shortDescription?: string;
+  learningOutcomes?: string[];
+  prerequisites?: string[];
+  estimatedDuration?: number;
+  category?: string;
+  tags?: string[];
   status?: 'draft' | 'published' | 'archived';
 }
 
@@ -234,6 +257,49 @@ class SimplifiedCourseService {
         throw new Error(error.response?.data?.message || 'Failed to mark video as watched');
       }
       throw new Error('Failed to mark video as watched');
+    }
+  }
+
+  // User: Create review for course
+  async createReview(courseId: string, reviewData: { rating: number; comment: string }) {
+    try {
+      const response = await axiosInstance.post(`/reviews/courses/${courseId}`, reviewData);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to create review');
+      }
+      throw new Error('Failed to create review');
+    }
+  }
+
+  // Public: Get course reviews
+  async getCourseReviews(courseId: string, page = 1, limit = 10) {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+      const response = await axiosInstance.get(`/reviews/courses/${courseId}?${params}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
+      }
+      throw new Error('Failed to fetch reviews');
+    }
+  }
+
+  // User: Get own reviews
+  async getMyReviews() {
+    try {
+      const response = await axiosInstance.get('/reviews/my-reviews');
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
+      }
+      throw new Error('Failed to fetch reviews');
     }
   }
 }

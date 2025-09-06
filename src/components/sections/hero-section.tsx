@@ -1,9 +1,60 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useState, useEffect } from "react"
+import CourseCard from "@/components/courses/CourseCard"
+import CourseDetailModal from "@/components/courses/CourseDetailModal"
+import simplifiedCourseService, { SimplifiedCourse } from "@/services/simplifiedCourseService"
+import { useToast } from "@/hooks/use-toast"
 
 export function HeroSection() {
+  const [featuredCourses, setFeaturedCourses] = useState<SimplifiedCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [detailModalCourse, setDetailModalCourse] = useState<SimplifiedCourse | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchFeaturedCourses();
+  }, []);
+
+  const fetchFeaturedCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await simplifiedCourseService.getPublishedCourses(1, 6);
+      setFeaturedCourses(response.courses || []);
+    } catch (error: any) {
+      console.error('Failed to fetch featured courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewCourseDetails = (course: SimplifiedCourse) => {
+    setDetailModalCourse(course);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEnrollInCourse = async (courseId: string) => {
+    try {
+      await simplifiedCourseService.enrollInCourse(courseId);
+      toast({
+        title: "Success!",
+        description: "Successfully enrolled in course"
+      });
+      setIsDetailModalOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to enroll in course",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen">
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated gradient orbs */}
@@ -132,7 +183,75 @@ export function HeroSection() {
             </div>
           </div>
         </div>
+
+        {/* Featured Courses Section */}
+        <div className="mt-16 lg:mt-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Featured <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Courses</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Start your learning journey with our most popular and highly-rated courses
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                  <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : featuredCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.map((course) => (
+                <CourseCard
+                  key={course._id}
+                  course={course}
+                  onViewDetails={handleViewCourseDetails}
+                  onEnroll={handleEnrollInCourse}
+                  compact={true}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📚</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No courses available yet</h3>
+              <p className="text-gray-600">Check back soon for exciting new courses!</p>
+            </div>
+          )}
+
+          {/* View All Courses Button */}
+          {featuredCourses.length > 0 && (
+            <div className="text-center mt-12">
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="h-12 px-8 border-2 border-orange-500 text-orange-600 hover:bg-orange-50 rounded-full font-semibold"
+              >
+                View All Courses
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Course Detail Modal */}
+      <CourseDetailModal
+        course={detailModalCourse}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onEnroll={handleEnrollInCourse}
+        isEnrolled={false}
+      />
     </section>
   )
 }
