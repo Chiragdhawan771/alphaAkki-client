@@ -41,12 +41,14 @@ export function Header() {
           
           {/* Actions */}
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <a href="#" className="hidden sm:block text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
+            <Link href="/signup/" className="hidden sm:block text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
               Sign Up
-            </a>
+            </Link>
+            <Link href="/login/">
             <Button size="sm" className="h-9 sm:h-10 px-4 sm:px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
               Sign In
             </Button>
+            </Link>
             
             {/* Mobile menu button */}
             <button 
