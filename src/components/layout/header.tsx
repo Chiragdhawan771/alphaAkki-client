@@ -33,7 +33,7 @@ export function Header() {
             <a href="#success-stories" className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
               Success Stories
             </a>
-            <a href="#about" className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
+            <a href="/about/" className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
               About
             </a>
             <a href="#contact" className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200">
@@ -108,14 +108,14 @@ export function Header() {
               <a href="#success-stories" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
                 Success Stories
               </a>
-              <a href="#about" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <a href="/about/" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
                 About
               </a>
               <a href="#contact" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
                 Contact
               </a>
               <div className="pt-2 border-t border-gray-200">
-                <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <a href="/signup/" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors">
                   Sign Up
                 </a>
               </div>
