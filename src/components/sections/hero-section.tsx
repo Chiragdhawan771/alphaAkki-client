@@ -31,9 +31,12 @@ export function HeroSection() {
     }
   };
 
-  const handleViewCourseDetails = (course: SimplifiedCourse) => {
-    setDetailModalCourse(course);
-    setIsDetailModalOpen(true);
+  const handleViewCourseDetails = (courseId: string) => {
+    const course = featuredCourses.find(c => c._id === courseId);
+    if (course) {
+      setDetailModalCourse(course);
+      setIsDetailModalOpen(true);
+    }
   };
 
   const handleEnrollInCourse = async (courseId: string) => {

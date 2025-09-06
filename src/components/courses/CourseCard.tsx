@@ -1,6 +1,6 @@
 
 "use client"
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,7 @@ import { SimplifiedCourse } from '@/services/simplifiedCourseService';
 
 interface CourseCardProps {
   course: SimplifiedCourse;
-  onViewDetails?: (course: SimplifiedCourse) => void;
+  onViewDetails?: (courseId: string) => void;
   onEnroll?: (courseId: string) => void;
   onContinue?: (courseId: string) => void;
   isEnrolled?: boolean;
@@ -26,6 +26,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
   showActions = true,
   compact = false
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -37,24 +41,81 @@ const CourseCard: React.FC<CourseCardProps> = ({
     ));
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (course.previewVideo) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setShowVideo(true);
+        if (videoRef.current) {
+          videoRef.current.play().catch(console.error);
+        }
+      }, 500); // Delay before showing video
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setShowVideo(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-      {/* Course Image */}
-      <div className="relative">
+      {/* Course Image/Video */}
+      <div 
+        className="relative overflow-hidden"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Thumbnail Image */}
         {course.thumbnail ? (
           <img
             src={course.thumbnail}
             alt={course.title}
-            className={`w-full object-cover rounded-t-lg ${compact ? 'h-32' : 'h-48'}`}
+            className={`w-full object-cover rounded-t-lg transition-opacity duration-300 ${
+              compact ? 'h-32' : 'h-48'
+            } ${showVideo ? 'opacity-0' : 'opacity-100'}`}
           />
         ) : (
-          <div className={`w-full bg-gradient-to-br from-orange-400 to-red-500 rounded-t-lg flex items-center justify-center ${compact ? 'h-32' : 'h-48'}`}>
+          <div className={`w-full bg-gradient-to-br from-orange-400 to-red-500 rounded-t-lg flex items-center justify-center transition-opacity duration-300 ${
+            compact ? 'h-32' : 'h-48'
+          } ${showVideo ? 'opacity-0' : 'opacity-100'}`}>
             <BookOpen className="h-12 w-12 text-white" />
           </div>
         )}
         
+        {/* Preview Video */}
+        {course.previewVideo && (
+          <video
+            ref={videoRef}
+            src={course.previewVideo}
+            className={`absolute inset-0 w-full object-cover rounded-t-lg transition-opacity duration-300 ${
+              compact ? 'h-32' : 'h-48'
+            } ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+        )}
+        
+        {/* Play Icon Overlay */}
+        {course.previewVideo && !showVideo && isHovered && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-t-lg">
+            <div className="bg-white/90 rounded-full p-3 shadow-lg">
+              <Play className="h-6 w-6 text-gray-800 ml-1" />
+            </div>
+          </div>
+        )}
+        
         {/* Price Badge */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 z-10">
           <Badge variant={course.type === 'free' ? 'secondary' : 'default'} className="shadow-md">
             {course.type === 'free' ? 'Free' : `$${course.price}`}
           </Badge>
@@ -62,9 +123,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
         {/* Category Badge */}
         {course.category && (
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 z-10">
             <Badge variant="outline" className="bg-white/90 shadow-md">
               {course.category}
+            </Badge>
+          </div>
+        )}
+        
+        {/* Video Count Badge */}
+        {course.videos && course.videos.length > 0 && (
+          <div className="absolute bottom-3 left-3 z-10">
+            <Badge variant="outline" className="bg-black/70 text-white border-white/20">
+              <Play className="h-3 w-3 mr-1" />
+              {course.videos.length} videos
             </Badge>
           </div>
         )}
@@ -137,7 +208,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 className="flex-1" 
                 variant="outline"
                 size={compact ? "sm" : "default"}
-                onClick={() => onViewDetails(course)}
+                onClick={() => onViewDetails(course._id)}
               >
                 View Details
               </Button>

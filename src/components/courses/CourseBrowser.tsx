@@ -21,8 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
+import CourseCard from './CourseCard';
 import StudentCourseViewer from './StudentCourseViewer';
+import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
 
 interface CourseBrowserProps {
   userRole?: 'admin' | 'student';
@@ -157,101 +158,16 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredCourses.map((course) => (
-            <Card 
-              key={course._id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setSelectedCourse(course._id)}
-            >
-              {/* Course Thumbnail */}
-              <div className="relative h-48 bg-gradient-to-br from-orange-400 to-red-500 rounded-t-lg overflow-hidden">
-                {course.thumbnail ? (
-                  <img 
-                    src={course.thumbnail} 
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <BookOpen className="h-12 w-12 text-white/80" />
-                  </div>
-                )}
-                
-                {/* Price Badge */}
-                <div className="absolute top-3 right-3">
-                  <Badge variant={course.type === 'free' ? 'secondary' : 'default'}>
-                    {course.type === 'free' ? 'Free' : `$${course.price}`}
-                  </Badge>
-                </div>
-                
-                {/* Video Count */}
-                {course.videos && course.videos.length > 0 && (
-                  <div className="absolute bottom-3 left-3">
-                    <Badge variant="outline" className="bg-black/50 text-white border-white/20">
-                      <Play className="h-3 w-3 mr-1" />
-                      {course.videos.length} videos
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {/* Title and Category */}
-                  <div>
-                    <h3 className="font-semibold line-clamp-2 mb-1">{course.title}</h3>
-                    {course.category && (
-                      <Badge variant="outline" className="text-xs">
-                        {course.category}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Instructor */}
-                  <p className="text-sm text-gray-600">
-                    by {course.instructor.firstName} {course.instructor.lastName}
-                  </p>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-700 line-clamp-2">
-                    {course.shortDescription || course.description}
-                  </p>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center">
-                        <Users className="h-3 w-3 mr-1" />
-                        {course.enrollmentCount}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {course.estimatedDuration || 0}h
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                        {course.averageRating.toFixed(1)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  {course.tags && course.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {course.tags.slice(0, 3).map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {course.tags.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{course.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <CourseCard
+              key={course._id}
+              course={course}
+              onViewDetails={() => setSelectedCourse(course._id)}
+              onEnroll={(courseId) => {
+                // Handle enrollment - could navigate to enrollment page or show modal
+                setSelectedCourse(courseId);
+              }}
+              showActions={true}
+            />
           ))}
         </div>
       )}

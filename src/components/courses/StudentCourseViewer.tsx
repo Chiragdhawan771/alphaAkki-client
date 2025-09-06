@@ -179,7 +179,55 @@ const StudentCourseViewer: React.FC<StudentCourseViewerProps> = ({ courseId, onB
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Video Player */}
+          {/* Preview Video for Non-Enrolled Users */}
+          {!enrollment && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Course Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative bg-black rounded-lg overflow-hidden">
+                  {course.previewVideo ? (
+                    <video
+                      src={course.previewVideo}
+                      className="w-full aspect-video"
+                      controls
+                      preload="metadata"
+                      poster={course.thumbnail}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : course.videos && course.videos.length > 0 ? (
+                    <video
+                      src={course.videos[0].videoUrl}
+                      className="w-full aspect-video"
+                      controls
+                      preload="metadata"
+                      poster={course.thumbnail}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="w-full aspect-video bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <Play className="h-16 w-16 mx-auto mb-4" />
+                        <p className="text-lg font-semibold">Preview Coming Soon</p>
+                        <p className="text-sm opacity-90">Video preview will be available shortly</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  {course.previewVideo || (course.videos && course.videos.length > 0) 
+                    ? "Get a preview of what you'll learn in this course. Enroll to access all course content."
+                    : "Enroll to access all course content and start learning."
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Video Player for Enrolled Users */}
           {enrollment && selectedVideoIndex !== null && course.videos?.[selectedVideoIndex] && (
             <VideoPlayer
               video={course.videos[selectedVideoIndex]}
