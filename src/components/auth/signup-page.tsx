@@ -144,7 +144,7 @@ export default function SignupPage() {
                     type="password"
                     placeholder="Create a strong password"
                     value={formData.password}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange} 
                     required
                     className="h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                   />
