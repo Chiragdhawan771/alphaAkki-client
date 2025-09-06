@@ -176,11 +176,11 @@ export default function SignupPage() {
                   />
                   <label htmlFor="terms" className="text-sm text-gray-700">
                     I agree to the{" "}
-                    <Link href="#" className="font-medium text-orange-600 hover:text-orange-500">
+                    <Link href="/termsconditions/" className="font-medium text-orange-600 hover:text-orange-500">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="#" className="font-medium text-orange-600 hover:text-orange-500">
+                    <Link href="/privacy-policy/" className="font-medium text-orange-600 hover:text-orange-500">
                       Privacy Policy
                     </Link>
                   </label>
@@ -214,7 +214,7 @@ export default function SignupPage() {
           </Card>
 
           {/* Social Signup Options */}
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -254,7 +254,7 @@ export default function SignupPage() {
                 <span className="ml-2">Facebook</span>
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       </div>

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export function Footer() {
   return (
@@ -61,7 +62,7 @@ export function Footer() {
         </div>
 
         {/* Newsletter signup */}
-        {/* <div className="border-t border-gray-800 py-8">
+        <div className="border-t border-gray-800 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="font-semibold text-lg text-white mb-2">Stay Updated</h3>
@@ -78,7 +79,7 @@ export function Footer() {
               </Button>
             </div>
           </div>
-        </div> */}
+        </div>
 
         {/* Bottom section */}
         <div className="border-t border-gray-800 py-6">
@@ -87,9 +88,9 @@ export function Footer() {
               2024 AlphaAkki. All rights reserved. Built with for learners worldwide.
             </p>
             <div className="flex items-center space-x-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Privacy Policy</a>
-              <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Terms of Service</a>
-              <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Support</a>
+              <Link href="/privacy-policy/" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Privacy Policy</Link>
+              <Link href="/termsconditions" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Terms of Service</Link>
+              {/* <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Support</a> */}
             </div>
           </div>
         </div>

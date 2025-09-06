@@ -61,8 +61,8 @@ export function AboutSection() {
             Your Guide to Content Creation Success
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            From zero to 300K+ subscribers, I've learned what it takes to succeed as a content creator. Now I'm here to
-            share that knowledge and help you level up your content creation journey.
+           { `From zero to 300K+ subscribers, I've learned what it takes to succeed as a content creator. Now I'm here to
+            share that knowledge and help you level up your content creation journey.`}
           </p>
         </div>
 
@@ -84,15 +84,15 @@ export function AboutSection() {
                 </div>
 
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  Hi! I'm AlphaAkki, a passionate content creator who has built a thriving YouTube community of over
+                 {`Hi! I'm AlphaAkki, a passionate content creator who has built a thriving YouTube community of over
                   300,000 subscribers. My journey from beginner to successful creator has taught me invaluable lessons
-                  about what works in the digital space.
+                  about what works in the digital space.`}
                 </p>
 
                 <p className="text-gray-700 leading-relaxed">
-                  Through my courses and mentorship, I help aspiring content creators avoid common pitfalls, accelerate
+                  {`Through my courses and mentorship, I help aspiring content creators avoid common pitfalls, accelerate
                   their growth, and build sustainable careers in the creator economy. Whether you're just starting out
-                  or looking to take your content to the next level, I'm here to guide you every step of the way.
+                  or looking to take your content to the next level, I'm here to guide you every step of the way.`}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 py-6">
