@@ -7,6 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
+/**
+ * Signup page React component that renders a card-based signup form with client-side validation.
+ *
+ * Controlled inputs collect first name, last name, email, password, and confirm password. The component
+ * requires the password fields to match and the terms checkbox to be checked before proceeding. On submit
+ * it simulates an asynchronous signup (1s delay), disables the submit button while loading, and logs the
+ * submitted form data to the console.
+ *
+ * @returns The JSX element for the signup page.
+ */
 export default function SignupPage() {
   const [formData, setFormData] = useState({
     firstName: "",

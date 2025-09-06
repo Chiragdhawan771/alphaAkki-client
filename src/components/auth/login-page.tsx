@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
+/**
+ * Client-side React component that renders the login page UI and handles a simulated sign-in flow.
+ *
+ * Renders email and password inputs, a "Remember me" checkbox, links for forgot password and sign-up,
+ * social sign-in buttons (Google, Facebook), and a submit button that shows a loading state.
+ * On form submit it prevents default behavior, sets an internal loading state, waits 1 second to
+ * simulate a login request, logs the entered credentials to the console, and then clears the loading state.
+ *
+ * @returns The login page JSX element.
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

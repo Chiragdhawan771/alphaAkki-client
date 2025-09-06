@@ -3,6 +3,20 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
 
+/**
+ * Responsive site header component with brand, navigation links, and auth actions.
+ *
+ * Renders a sticky, responsive header that shows a desktop navigation bar on large screens
+ * and a toggleable mobile navigation panel on smaller screens. Includes:
+ * - Brand/logo linking to "/"
+ * - Desktop nav links to in-page sections (Home, Learning Tracks, Success Stories, About, Contact)
+ * - Actions: "Sign Up" (links to /signup/) and "Sign In" button (links to /login/)
+ * - Mobile menu button that toggles an internal `isMobileMenuOpen` state to show/hide the mobile panel
+ *
+ * The mobile panel mirrors the desktop links and includes a Sign Up item.
+ *
+ * @returns The header JSX element.
+ */
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
