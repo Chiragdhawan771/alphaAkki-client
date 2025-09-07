@@ -4,7 +4,8 @@ import {
   Enrollment,
   EnrollmentData,
   ApiResponse,
-  PaginatedResponse
+  PaginatedResponse,
+  Dashboard
 } from './types';
 
 class EnrollmentService {
@@ -34,7 +35,7 @@ class EnrollmentService {
   }
 
   // Get user dashboard (enrolled courses)
-  async getUserDashboard(): Promise<ApiResponse<{ enrollments: Enrollment[] }>> {
+  async getUserDashboard(): Promise<ApiResponse<Dashboard>|any> {
     try {
       const response = await axiosInstance.get('/enrollments/dashboard');
       return response.data;

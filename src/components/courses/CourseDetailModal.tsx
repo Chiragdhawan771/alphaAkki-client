@@ -129,7 +129,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Course Image */}
             <div className="md:col-span-1">
-              {course.thumbnail ? (
+              {/* {course.thumbnail ? (
                 <img
                   src={course.thumbnail}
                   alt={course.title}
@@ -139,7 +139,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                   <BookOpen className="h-12 w-12 text-gray-400" />
                 </div>
-              )}
+              )} */}
               
               {/* Preview Video */}
               {course.previewVideo && (
@@ -158,7 +158,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
             {/* Course Info */}
             <div className="md:col-span-2 space-y-4">
               {/* Price and Rating */}
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Badge variant={course.type === 'free' ? 'secondary' : 'default'} className="text-lg px-3 py-1">
                     {course.type === 'free' ? 'Free' : `$${course.price}`}
@@ -173,7 +173,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                     )}
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Short Description */}
               {course.shortDescription && (

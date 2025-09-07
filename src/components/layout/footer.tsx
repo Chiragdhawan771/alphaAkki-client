@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export function Footer() {
@@ -8,8 +7,8 @@ export function Footer() {
         {/* Main footer content */}
         <div className="py-12 sm:py-16 lg:py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {/* Brand section */}
-            <div className="lg:col-span-2">
+            {/* Brand section - full width on mobile, 2 cols on large */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-base">A</span>
@@ -17,17 +16,26 @@ export function Footer() {
                 <span className="font-bold text-xl text-white">AlphaAkki</span>
               </div>
               <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-md">
-                Transform your career with AlphaAkki – the ultimate platform for YouTubers and digital creators.
-
-                Learn YouTube growth, video editing, content strategy, and monetization to turn passion into profit. Join 50,000+ creators building loyal audiences and thriving careers with step-by-step guidance and expert support.
+                Transform your career with AlphaAkki – the ultimate platform for YouTubers and digital creators. Learn
+                YouTube growth, video editing, content strategy, and monetization to turn passion into profit. Join
+                50,000+ creators building loyal audiences and thriving careers with step-by-step guidance and expert
+                support.
               </p>
               <div className="flex items-center space-x-4">
-                <a href="https://www.instagram.com/alphaakki_/" target="blank" className="w-10 h-10 bg-gray-800 hover:bg-orange-500 rounded-lg flex items-center justify-center transition-colors duration-200">
+                <a
+                  href="https://www.instagram.com/alphaakki_/"
+                  target="blank"
+                  className="w-10 h-10 bg-gray-800 hover:bg-orange-500 rounded-lg flex items-center justify-center transition-colors duration-200"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.25-.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5z" />
                   </svg>
                 </a>
-                <a href="https://www.youtube.com/@alphaakki" target="blank" className="w-10 h-10 bg-gray-800 hover:bg-orange-500 rounded-lg flex items-center justify-center transition-colors duration-200">
+                <a
+                  href="https://www.youtube.com/@alphaakki"
+                  target="blank"
+                  className="w-10 h-10 bg-gray-800 hover:bg-orange-500 rounded-lg flex items-center justify-center transition-colors duration-200"
+                >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M23.5 6.2s-.2-1.6-.8-2.3c-.7-.8-1.6-.8-2-0.9C17.7 2.7 12 2.7 12 2.7s-5.7 0-8.7.3c-.4 0-1.3.1-2 .9-.6.7-.8 2.3-.8 2.3S0 8.1 0 9.9v1.8c0 1.8.2 3.7.2 3.7s.2 1.6.8 2.3c.7.8 1.6.8 2 .9 3 .3 8.7.3 8.7.3s5.7 0 8.7-.3c.4 0 1.3-.1 2-.9.6-.7.8-2.3.8-2.3s.2-1.9.2-3.7V9.9c0-1.8-.2-3.7-.2-3.7zM9.7 15.6V8.4l6.3 3.6-6.3 3.6z" />
                   </svg>
@@ -35,28 +43,53 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Learning section */}
-            <div>
-              <h3 className="font-semibold text-lg text-white mb-6">Learning</h3>
-              <ul className="space-y-4">
-                <li><a href="#tracks" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Learning Tracks</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">All Courses</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Free Resources</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Certifications</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Career Paths</a></li>
-              </ul>
-            </div>
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-8 md:gap-12">
+              {/* Learning section */}
+              <div>
+                <h3 className="font-semibold text-lg text-white mb-6">Learning</h3>
+                <ul className="space-y-4">
+                  <li>
+                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      All Courses
+                    </a>
+                  </li>
+                  {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Free Resources</a></li> */}
+                  <li>
+                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      Certifications
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      Career Paths
+                    </a>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Company section */}
-            <div>
-              <h3 className="font-semibold text-lg text-white mb-6">Company</h3>
-              <ul className="space-y-4">
-                <li><a href="#about" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">About Us</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Careers</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Press</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Blog</a></li>
-                <li><a href="#contact" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Contact</a></li>
-              </ul>
+              {/* Company section */}
+              <div>
+                <h3 className="font-semibold text-lg text-white mb-6">Company</h3>
+                <ul className="space-y-4">
+                  <li>
+                    <Link href="/about/" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      About Us
+                    </Link>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      Careers
+                    </a>
+                  </li>
+                  {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Press</a></li> */}
+                  {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Blog</a></li> */}
+                  <li>
+                    <Link href="/contact/" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                      Contact
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -88,9 +121,18 @@ export function Footer() {
               2024 AlphaAkki. All rights reserved. Built with for learners worldwide.
             </p>
             <div className="flex items-center space-x-6 text-sm">
-              <Link href="/privacy-policy/" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Privacy Policy</Link>
-              <Link href="/termsconditions" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Terms of Service</Link>
-              {/* <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors duration-200">Support</a> */}
+              <Link
+                href="/privacy-policy/"
+                className="text-gray-400 hover:text-orange-400 transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/termsconditions"
+                className="text-gray-400 hover:text-orange-400 transition-colors duration-200"
+              >
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>

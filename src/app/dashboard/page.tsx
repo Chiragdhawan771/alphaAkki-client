@@ -64,6 +64,7 @@ export default function DashboardPage() {
           const coursesResponse = await courseService.getCourses({
             limit: 100,
           });
+          console.log(coursesResponse,"coursesResponsecoursesResponse")
           const courses = coursesResponse.data || [];
           setStats({
             totalCourses: courses.length,
@@ -82,9 +83,9 @@ export default function DashboardPage() {
           try {
             const dashboardResponse =
               await enrollmentService.getUserDashboard();
-            const enrollments = dashboardResponse.data.enrollments || [];
+            const enrollments = dashboardResponse ;
             setStats({
-              totalCourses: enrollments.length,
+              totalCourses: enrollments.totalCourses,
               totalStudents: 0,
               totalRevenue: 0,
             });
@@ -284,7 +285,7 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 p-4 border rounded-lg">
+                      <div className="flex items-center gap-3 p-4 border rounded-lg" onClick={()=>setActiveSection("courses")}>
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>

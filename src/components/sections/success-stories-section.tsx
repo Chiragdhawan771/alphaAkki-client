@@ -80,7 +80,7 @@ export function SuccessStoriesSection() {
         <div className="grid gap-8 lg:grid-cols-2 xl:gap-12">
           {/* Main featured story */}
           <Card className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 shadow-xl rounded-3xl overflow-hidden">
-            <CardContent className="p-8 sm:p-10 h-full flex flex-col justify-between">
+            <CardContent className="p-8 sm:p-10 h-full \ flex-col justify-between">
               <div className="space-y-6">
                 <div className="flex items-center space-x-3">
                   <div className="h-10 w-10 rounded-2xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center">
@@ -137,7 +137,7 @@ export function SuccessStoriesSection() {
                 <CardContent className="p-6 sm:p-8">
                   <div className="flex items-start space-x-4">
                     <div className={`h-14 w-14 rounded-2xl bg-${story.image} flex-shrink-0 flex items-center justify-center shadow-lg`}>
-                      <span className="text-white font-bold text-lg">{story.name.charAt(0)}</span>
+                      <span className="text-black font-bold text-lg">{story.name.charAt(0)}</span>
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
