@@ -496,7 +496,7 @@ const UserCourseViewer: React.FC = () => {
         course={detailModalCourse}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        onEnroll={handleEnrollInCourse}
+        onEnroll={undefined}
         isEnrolled={detailModalCourse ? enrolledCourses.some(e => e.course._id === detailModalCourse._id) : false}
       />
     </div>

@@ -14,6 +14,7 @@ export interface SimplifiedCourse {
   price: number;
   type: 'free' | 'paid';
   status: 'draft' | 'published' | 'archived';
+  level: 'beginner' | 'intermediate' | 'advanced';
   enrollmentCount: number;
   thumbnail?: string;
   previewVideo?: string;

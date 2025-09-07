@@ -9,9 +9,21 @@ import {
 
 class EnrollmentService {
   // Enroll in a course
-  async enrollInCourse(enrollmentData: EnrollmentData): Promise<ApiResponse<Enrollment>> {
+  async enrollInCourse(enrollmentData: EnrollmentData): Promise<ApiResponse<Enrollment>>;
+  async enrollInCourse(courseId: string): Promise<ApiResponse<Enrollment>>;
+  async enrollInCourse(enrollmentDataOrCourseId: EnrollmentData | string): Promise<ApiResponse<Enrollment>> {
     try {
-      const response = await axiosInstance.post('/enrollments', enrollmentData);
+      let requestData: EnrollmentData;
+      
+      if (typeof enrollmentDataOrCourseId === 'string') {
+        // If courseId is passed as string, create enrollment data object
+        requestData = { course: enrollmentDataOrCourseId };
+      } else {
+        // If enrollment data object is passed
+        requestData = enrollmentDataOrCourseId;
+      }
+
+      const response = await axiosInstance.post('/enrollments', requestData);
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {

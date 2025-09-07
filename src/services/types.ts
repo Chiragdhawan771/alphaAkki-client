@@ -132,10 +132,10 @@ export interface CreateLectureData {
 
 export interface EnrollmentData {
   course: string;
-  amountPaid: number;
-  paymentStatus: 'completed' | 'pending';
-  paymentId: string;
-  paymentMethod: string;
+  amountPaid?: number;
+  paymentStatus?: 'completed' | 'pending';
+  paymentId?: string;
+  paymentMethod?: string;
 }
 
 export interface ProgressUpdateData {

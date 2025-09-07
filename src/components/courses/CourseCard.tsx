@@ -4,8 +4,9 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, Clock, Users, BookOpen, Play } from 'lucide-react';
+import { Star, Clock, Users, BookOpen, Play, CreditCard, Loader2 } from 'lucide-react';
 import { SimplifiedCourse } from '@/services/simplifiedCourseService';
+import { usePayment } from '@/hooks/usePayment';
 
 interface CourseCardProps {
   course: SimplifiedCourse;
@@ -30,6 +31,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const [showVideo, setShowVideo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -62,6 +64,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
+    }
+  };
+
+  const handleEnrollClick = async () => {
+    console.log('CourseCard handleEnrollClick called for course:', course._id, 'type:', course.type);
+    console.log('onEnroll prop:', onEnroll);
+    
+    if (course.type === 'free') {
+      console.log('Enrolling in free course');
+      await enrollInFreeCourse(course._id);
+    } else {
+      console.log('Initiating payment for paid course');
+      await initiatePayment(course._id);
     }
   };
 
@@ -148,6 +163,24 @@ const CourseCard: React.FC<CourseCardProps> = ({
         
         {/* Rating and Reviews */}
         <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {course.level}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {course.type}
+            </Badge>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-orange-600">
+              {course.type === 'free' ? 'Free' : `₹${course.price}`}
+            </p>
+            {course.type === 'paid' && course.price && (
+              <p className="text-xs text-gray-500">One-time payment</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1">
             {renderStars(course.averageRating)}
             <span className="font-medium text-sm ml-1">
@@ -225,19 +258,35 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </Button>
               )
             ) : (
-              onEnroll && (
-                <Button 
-                  className="flex-1" 
-                  size={compact ? "sm" : "default"}
-                  onClick={() => onEnroll(course._id)}
-                >
-                  Enroll Now
-                </Button>
-              )
+              <Button 
+                className="flex-1" 
+                size={compact ? "sm" : "default"}
+                onClick={onEnroll ? () => onEnroll(course._id) : handleEnrollClick}
+                disabled={paymentState.isProcessing}
+              >
+                {paymentState.isProcessing ? (
+                  <>
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    {course.type === 'free' ? 'Enrolling...' : 'Processing...'}
+                  </>
+                ) : (
+                  <>
+                    {course.type === 'free' ? (
+                      'Enroll Free'
+                    ) : (
+                      <>
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        Buy ₹{course.price}
+                      </>
+                    )}
+                  </>
+                )}
+              </Button>
             )}
           </div>
         )}
       </CardContent>
+
     </Card>
   );
 };

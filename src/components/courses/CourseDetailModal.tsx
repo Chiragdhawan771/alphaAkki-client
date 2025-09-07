@@ -22,7 +22,7 @@ interface CourseDetailModalProps {
   course: SimplifiedCourse | null;
   isOpen: boolean;
   onClose: () => void;
-  onEnroll: (courseId: string) => void;
+  onEnroll?: (courseId: string) => void;
   isEnrolled: boolean;
 }
 
@@ -199,7 +199,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                     Already Enrolled
                   </Button>
                 ) : (
-                  <Button className="flex-1" onClick={() => onEnroll(course._id)}>
+                  <Button className="flex-1" onClick={() => onEnroll?.(course._id)}>
                     Enroll Now
                   </Button>
                 )}

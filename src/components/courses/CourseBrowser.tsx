@@ -162,10 +162,7 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
               key={course._id}
               course={course}
               onViewDetails={() => setSelectedCourse(course._id)}
-              onEnroll={(courseId) => {
-                // Handle enrollment - could navigate to enrollment page or show modal
-                setSelectedCourse(courseId);
-              }}
+              onEnroll={undefined}
               showActions={true}
             />
           ))}

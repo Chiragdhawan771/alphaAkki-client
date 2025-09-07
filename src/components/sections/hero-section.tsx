@@ -40,20 +40,8 @@ export function HeroSection() {
   };
 
   const handleEnrollInCourse = async (courseId: string) => {
-    try {
-      await simplifiedCourseService.enrollInCourse(courseId);
-      toast({
-        title: "Success!",
-        description: "Successfully enrolled in course"
-      });
-      setIsDetailModalOpen(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to enroll in course",
-        variant: "destructive"
-      });
-    }
+    // This function is no longer used - CourseCard handles enrollment internally
+    console.log('Enrollment handled by CourseCard for course:', courseId);
   };
 
   return (
@@ -216,7 +204,7 @@ export function HeroSection() {
                   key={course._id}
                   course={course}
                   onViewDetails={handleViewCourseDetails}
-                  onEnroll={handleEnrollInCourse}
+                  onEnroll={undefined}
                   compact={true}
                 />
               ))}
@@ -252,7 +240,7 @@ export function HeroSection() {
         course={detailModalCourse}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        onEnroll={handleEnrollInCourse}
+        onEnroll={undefined}
         isEnrolled={false}
       />
     </section>
