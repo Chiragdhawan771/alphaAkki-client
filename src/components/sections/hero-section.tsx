@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import CourseCard from "@/components/courses/CourseCard"
 import CourseDetailModal from "@/components/courses/CourseDetailModal"
 import simplifiedCourseService, { SimplifiedCourse } from "@/services/simplifiedCourseService"
+import enrollmentService from "@/services/enrollmentService"
 import { useToast } from "@/hooks/use-toast"
 
 export function HeroSection() {
@@ -13,10 +14,12 @@ export function HeroSection() {
   const [loading, setLoading] = useState(true);
   const [detailModalCourse, setDetailModalCourse] = useState<SimplifiedCourse | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
     fetchFeaturedCourses();
+    loadEnrollmentStatus();
   }, []);
 
   const fetchFeaturedCourses = async () => {
@@ -28,6 +31,24 @@ export function HeroSection() {
       console.error('Failed to fetch featured courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEnrollmentStatus = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      
+      const response = await enrollmentService.getUserDashboard();
+      const enrolledCourseIds = new Set(
+        response.data.enrollments.map((enrollment: any) => 
+          typeof enrollment.course === 'string' ? enrollment.course : enrollment.course._id
+        )
+      );
+      setEnrolledCourses(enrolledCourseIds);
+    } catch (error) {
+      // Silently fail if user is not logged in or error occurs
+      console.log('Could not load enrollment status:', error);
     }
   };
 
@@ -206,6 +227,8 @@ export function HeroSection() {
                   onViewDetails={handleViewCourseDetails}
                   onEnroll={undefined}
                   compact={true}
+                  isEnrolled={enrolledCourses.has(course._id)}
+                  onContinue={() => window.location.href = `/courses/${course._id}`}
                 />
               ))}
             </div>

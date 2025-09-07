@@ -14,9 +14,12 @@ import {
   Award, 
   CheckCircle,
   MessageSquare,
-  ThumbsUp
+  ThumbsUp,
+  CreditCard,
+  Loader2
 } from 'lucide-react';
 import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
+import { usePayment } from '@/hooks/usePayment';
 
 interface CourseDetailModalProps {
   course: SimplifiedCourse | null;
@@ -49,6 +52,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const { toast } = useToast();
+  const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
 
   useEffect(() => {
     if (course && isOpen) {
@@ -87,6 +91,16 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
         description: error.message || "Failed to submit review",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleEnrollClick = async () => {
+    if (!course) return;
+    
+    if (course.type === 'free') {
+      await enrollInFreeCourse(course._id);
+    } else {
+      await initiatePayment(course._id);
     }
   };
 
@@ -194,13 +208,36 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
               {/* Enroll Button */}
               <div className="flex space-x-3">
                 {isEnrolled ? (
-                  <Button className="flex-1" variant="outline" disabled>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Already Enrolled
+                  <Button 
+                    className="flex-1" 
+                    onClick={() => window.location.href = `/courses/${course._id}`}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Continue Learning
                   </Button>
                 ) : (
-                  <Button className="flex-1" onClick={() => onEnroll?.(course._id)}>
-                    Enroll Now
+                  <Button 
+                    className="flex-1" 
+                    onClick={onEnroll ? () => onEnroll(course._id) : handleEnrollClick}
+                    disabled={paymentState.isProcessing}
+                  >
+                    {paymentState.isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {course.type === 'free' ? 'Enrolling...' : 'Processing...'}
+                      </>
+                    ) : (
+                      <>
+                        {course.type === 'free' ? (
+                          'Enroll Free'
+                        ) : (
+                          <>
+                            <CreditCard className="h-4 w-4 mr-2" />
+                            Buy ₹{course.price}
+                          </>
+                        )}
+                      </>
+                    )}
                   </Button>
                 )}
                 {isEnrolled && !showReviewForm && (

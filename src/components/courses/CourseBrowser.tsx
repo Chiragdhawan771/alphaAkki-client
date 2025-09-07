@@ -24,6 +24,7 @@ import {
 import CourseCard from './CourseCard';
 import StudentCourseViewer from './StudentCourseViewer';
 import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
+import { enrollmentService } from '@/services/enrollmentService';
 
 interface CourseBrowserProps {
   userRole?: 'admin' | 'student';
@@ -31,6 +32,7 @@ interface CourseBrowserProps {
 
 const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) => {
   const [courses, setCourses] = useState<SimplifiedCourse[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -41,6 +43,7 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
 
   useEffect(() => {
     loadCourses();
+    loadEnrollmentStatus();
   }, [currentPage, searchTerm]);
 
   const loadCourses = async () => {
@@ -61,6 +64,24 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEnrollmentStatus = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+      
+      const response = await enrollmentService.getUserDashboard();
+      const enrolledCourseIds = new Set(
+        response.data.enrollments.map((enrollment: any) => 
+          typeof enrollment.course === 'string' ? enrollment.course : enrollment.course._id
+        )
+      );
+      setEnrolledCourses(enrolledCourseIds);
+    } catch (error) {
+      // Silently fail if user is not logged in or error occurs
+      console.log('Could not load enrollment status:', error);
     }
   };
 
@@ -163,6 +184,8 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
               course={course}
               onViewDetails={() => setSelectedCourse(course._id)}
               onEnroll={undefined}
+              onContinue={() => setSelectedCourse(course._id)}
+              isEnrolled={enrolledCourses.has(course._id)}
               showActions={true}
             />
           ))}
