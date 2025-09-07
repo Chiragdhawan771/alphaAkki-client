@@ -233,17 +233,22 @@ export function Header() {
               >
                 Contact
               </a>
-              <div className="pt-2 border-t border-gray-200" onClick={logout}>
+              <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
-                  <div className="px-3 py-2 text-red-600 focus:text-red-600 text-base font-medium ">Logout</div>
+                  <div 
+                    onClick={logout}
+                    className="px-3 py-2 text-red-600 focus:text-red-600 text-base font-medium cursor-pointer hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    Logout
+                  </div>
                 ) : (
-                  <a
+                  <Link
                     href="/signup/"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors"
                   >
                     Sign Up
-                  </a>
+                  </Link>
                 )}
               </div>
             </div>
