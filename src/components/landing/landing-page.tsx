@@ -11,7 +11,7 @@ export function LandingPage() {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <TrustedBySection />
+        {/* <TrustedBySection /> */}
         {/* <TracksSection /> */}
         <SuccessStoriesSection />
         <NewsletterSection />

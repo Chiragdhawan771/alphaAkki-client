@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Header } from "../layout/header"
 
 interface AboutStats {
   subscribers: string
@@ -49,6 +50,8 @@ const learningPaths: LearningPath[] = [
 
 export function AboutSection() {
   return (
+    <div className="min-h-screen bg-gray-50">
+      <Header/>
     <section id="about" className="bg-gradient-to-br from-gray-50 via-white to-orange-50 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Section Header */}
@@ -207,5 +210,6 @@ export function AboutSection() {
         </div>
       </div>
     </section>
+    </div>
   )
 }

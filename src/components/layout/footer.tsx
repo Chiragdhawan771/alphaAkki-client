@@ -62,7 +62,7 @@ export function Footer() {
         </div>
 
         {/* Newsletter signup */}
-        <div className="border-t border-gray-800 py-8">
+        {/* <div className="border-t border-gray-800 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="font-semibold text-lg text-white mb-2">Stay Updated</h3>
@@ -79,7 +79,7 @@ export function Footer() {
               </Button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Bottom section */}
         <div className="border-t border-gray-800 py-6">
