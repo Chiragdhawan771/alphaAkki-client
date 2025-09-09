@@ -65,6 +65,7 @@ export default function DashboardPage() {
           const coursesResponse = await courseService.getCourses({
             limit: 100,
           });
+          console.log(coursesResponse,"coursesResponsecoursesResponse")
           const courses = coursesResponse.data || [];
           setStats({
             totalCourses: courses.length,
@@ -81,6 +82,16 @@ export default function DashboardPage() {
         } else {
           // Fetch student dashboard data with comprehensive stats
           try {
+// <<<<<<< client-dashboard-changes
+//             const dashboardResponse =
+//               await enrollmentService.getUserDashboard();
+//             const enrollments = dashboardResponse ;
+//             setStats({
+//               totalCourses: enrollments.totalCourses,
+//               totalStudents: 0,
+//               totalRevenue: 0,
+//             });
+// =======
             const dashboardResponse = await enrollmentService.getUserDashboard();
             const dashboardData = dashboardResponse.data;
             
@@ -100,6 +111,7 @@ export default function DashboardPage() {
                 totalRevenue: 0,
               });
             }
+// >>>>>>> main
           } catch (error) {
             // User might not have any enrollments yet
             console.warn("No enrollment data found:", error);
@@ -272,7 +284,11 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     <>
+<!-- <<<<<<< client-dashboard-changes
+                      <div className="flex items-center gap-3 p-4 border rounded-lg" onClick={()=>setActiveSection("courses")}>
+======= -->
                       <Link href="/courses" className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+<!-- >>>>>>> main -->
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>

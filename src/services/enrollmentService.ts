@@ -4,7 +4,8 @@ import {
   Enrollment,
   EnrollmentData,
   ApiResponse,
-  PaginatedResponse
+  PaginatedResponse,
+  Dashboard
 } from './types';
 
 class EnrollmentService {
@@ -34,6 +35,7 @@ class EnrollmentService {
   }
 
   // Get user dashboard (enrolled courses)
+
   async getUserDashboard(): Promise<ApiResponse<{
     totalCourses: number;
     inProgress: number;
