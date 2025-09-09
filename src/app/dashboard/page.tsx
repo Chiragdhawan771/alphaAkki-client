@@ -284,11 +284,11 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     <>
-<!-- <<<<<<< client-dashboard-changes
-                      <div className="flex items-center gap-3 p-4 border rounded-lg" onClick={()=>setActiveSection("courses")}>
-======= -->
+
+                      {/* // <div className="flex items-center gap-3 p-4 border rounded-lg" onClick={()=>setActiveSection("courses")}> */}
+
                       <Link href="/courses" className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-<!-- >>>>>>> main -->
+
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>
