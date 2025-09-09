@@ -90,6 +90,7 @@ export interface Progress {
 export interface CourseStructure {
   course: Course;
   sections: Section[];
+  enrollment?: Enrollment;
 }
 
 export interface Dashboard {

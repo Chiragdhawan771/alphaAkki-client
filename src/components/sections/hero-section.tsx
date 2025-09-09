@@ -228,7 +228,7 @@ export function HeroSection() {
                   onEnroll={undefined}
                   compact={true}
                   isEnrolled={enrolledCourses.has(course._id)}
-                  onContinue={() => window.location.href = `/courses/${course._id}`}
+                  onContinue={() => window.location.href = `/learn/${course._id}`}
                 />
               ))}
             </div>

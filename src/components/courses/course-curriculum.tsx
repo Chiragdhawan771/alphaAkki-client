@@ -61,7 +61,10 @@ export function CourseCurriculum({
   }
 
   const getTotalLectures = () => {
-    return sections.reduce((total, section) => total + section.lectureCount, 0)
+    return sections.reduce((total, section) => {
+      const lectureCount = section.lectureCount || section.lectures?.length || 0
+      return total + lectureCount
+    }, 0)
   }
 
   return (

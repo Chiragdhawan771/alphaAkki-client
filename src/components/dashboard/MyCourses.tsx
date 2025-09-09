@@ -94,7 +94,7 @@ export const MyCourses: React.FC<MyCoursesProps> = ({
                     <Button 
                       size="sm" 
                       className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                      onClick={() => window.location.href = `/courses/${enrollment.course}`}
+                      onClick={() => window.location.href = `/learn/${enrollment.course}`}
                     >
                       {enrollment.status === 'completed' ? 'Review' : 'Continue'}
                     </Button>

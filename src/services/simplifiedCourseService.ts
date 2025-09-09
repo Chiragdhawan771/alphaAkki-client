@@ -212,7 +212,7 @@ class SimplifiedCourseService {
   // User: Enroll in course
   async enrollInCourse(courseId: string, paymentData?: { paymentId?: string; amountPaid?: number }) {
     try {
-      const response = await axiosInstance.post(`/simplified-courses/${courseId}/enroll`, paymentData || {});
+      const response = await axiosInstance.post(`/courses/${courseId}/enroll`, paymentData || {});
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -225,7 +225,7 @@ class SimplifiedCourseService {
   // User: Get enrolled courses
   async getEnrolledCourses() {
     try {
-      const response = await axiosInstance.get('/simplified-courses/enrolled');
+      const response = await axiosInstance.get('/courses/enrolled/my-courses');
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -238,7 +238,7 @@ class SimplifiedCourseService {
   // User: Get course content (only if enrolled)
   async getCourseContent(courseId: string) {
     try {
-      const response = await axiosInstance.get(`/simplified-courses/${courseId}/content`);
+      const response = await axiosInstance.get(`/courses/${courseId}/structure`);
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {

@@ -210,7 +210,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 {isEnrolled ? (
                   <Button 
                     className="flex-1" 
-                    onClick={() => window.location.href = `/courses/${course._id}`}
+                    onClick={() => window.location.href = `/learn/${course._id}`}
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Continue Learning

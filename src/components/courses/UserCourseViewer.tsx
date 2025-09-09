@@ -76,7 +76,7 @@ const UserCourseViewer: React.FC = () => {
   const handleOpenCourse = async (courseId: string) => {
     try {
       const courseContent = await simplifiedCourseService.getCourseContent(courseId);
-      setSelectedCourse(courseContent);
+      setSelectedCourse(courseContent.course);
       setCurrentVideo(0);
     } catch (error: any) {
       toast({

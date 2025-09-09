@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Menu, X } from "lucide-react"
+import { ArrowLeft, Menu, X, BookOpen, Clock, CheckCircle2, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { CourseSidebar } from "@/components/player/course-sidebar"
 import { LectureContent } from "@/components/player/lecture-content"
 import { courseService, enrollmentService, progressService, lectureService } from "@/services"
@@ -35,6 +37,11 @@ export default function LearnPage() {
       setCourse(courseResponse.data)
       setCourseStructure(structureResponse.data)
       
+      // Check enrollment from structure response
+      if (structureResponse.data.enrollment) {
+        setIsEnrolled(true)
+      }
+      
       // Set first lecture as current if no lecture is selected
       const firstLecture = structureResponse.data.sections[0]?.lectures?.[0]
       if (firstLecture && !currentLecture) {
@@ -53,14 +60,9 @@ export default function LearnPage() {
 
   const checkEnrollmentAndProgress = async () => {
     try {
-      const [enrollmentResponse, progressResponse] = await Promise.all([
-        enrollmentService.checkEnrollmentStatus(courseId),
-        progressService.getCourseProgress(courseId)
-      ])
+      const progressResponse = await progressService.getCourseProgress(courseId)
       
-      setIsEnrolled(enrollmentResponse.data.isEnrolled)
-      
-      if (enrollmentResponse.data.isEnrolled && progressResponse.data.lectureProgress) {
+      if (progressResponse.data.lectureProgress) {
         const progressMap: Record<string, number> = {}
         progressResponse.data.lectureProgress.forEach(progress => {
           progressMap[progress.lecture] = progress.progressPercentage
@@ -68,8 +70,8 @@ export default function LearnPage() {
         setUserProgress(progressMap)
       }
     } catch (error) {
-      // User might not be enrolled or logged in
-      setIsEnrolled(false)
+      // Progress might not be available
+      console.log('Progress not available:', error)
     }
   }
 
@@ -173,37 +175,90 @@ export default function LearnPage() {
     )
   }
 
+  const getTotalProgress = () => {
+    const allLectures = courseStructure?.sections.flatMap(s => s.lectures || []) || []
+    if (allLectures.length === 0) return 0
+    
+    const completedLectures = allLectures.filter(
+      lecture => userProgress[lecture.id] === 100
+    ).length
+    
+    return (completedLectures / allLectures.length) * 100
+  }
+
+  const getCurrentLectureInfo = () => {
+    if (!currentLecture || !courseStructure) return null
+    
+    const allLectures = courseStructure.sections.flatMap(s => s.lectures || [])
+    const currentIndex = allLectures.findIndex(l => l.id === currentLecture.id)
+    const currentSection = courseStructure.sections.find(s => 
+      s.lectures?.some(l => l.id === currentLecture.id)
+    )
+    
+    return {
+      currentIndex: currentIndex + 1,
+      totalLectures: allLectures.length,
+      sectionTitle: currentSection?.title || 'Unknown Section'
+    }
+  }
+
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-50 to-white">
+      {/* Enhanced Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-white/80 backdrop-blur-sm shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={goBackToCourse}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={goBackToCourse}
+            className="hover:bg-orange-50 hover:text-orange-600 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Course
           </Button>
-          <div className="hidden md:block">
-            <h1 className="font-semibold truncate max-w-md">{course.title}</h1>
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-orange-500" />
+              <h1 className="font-semibold text-gray-900 truncate max-w-md">{course.title}</h1>
+            </div>
+            {getCurrentLectureInfo() && (
+              <Badge variant="outline" className="text-xs">
+                {getCurrentLectureInfo()?.currentIndex} of {getCurrentLectureInfo()?.totalLectures}
+              </Badge>
+            )}
           </div>
         </div>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Progress indicator */}
+          {isEnrolled && (
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span>{Math.round(getTotalProgress())}% Complete</span>
+              </div>
+              <Progress value={getTotalProgress()} className="w-20 h-2" />
+            </div>
+          )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden hover:bg-orange-50"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
+        {/* Enhanced Sidebar */}
         <div className={cn(
-          "transition-all duration-300 ease-in-out",
+          "transition-all duration-300 ease-in-out border-r border-gray-200",
           sidebarOpen ? "w-80" : "w-0",
-          "md:relative absolute inset-y-0 left-0 z-10 bg-background"
+          "md:relative absolute inset-y-0 left-0 z-10 bg-white shadow-lg md:shadow-none"
         )}>
           {sidebarOpen && (
             <CourseSidebar
@@ -216,22 +271,78 @@ export default function LearnPage() {
           )}
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6 max-w-4xl mx-auto">
+        {/* Enhanced Content Area */}
+        <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-white">
+          <div className="p-6 max-w-5xl mx-auto">
             {currentLecture ? (
-              <LectureContent
-                lecture={currentLecture}
-                courseId={courseId}
-                onProgress={handleProgress}
-                onComplete={handleLectureComplete}
-              />
+              <div className="space-y-6">
+                {/* Lecture Header */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="capitalize bg-orange-50 text-orange-700 border-orange-200">
+                          {currentLecture.type}
+                        </Badge>
+                        {getCurrentLectureInfo() && (
+                          <Badge variant="secondary" className="text-xs">
+                            {getCurrentLectureInfo()?.sectionTitle}
+                          </Badge>
+                        )}
+                      </div>
+                      <h1 className="text-2xl font-bold text-gray-900">{currentLecture.title}</h1>
+                      {currentLecture.description && (
+                        <p className="text-gray-600 leading-relaxed">{currentLecture.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Clock className="h-4 w-4" />
+                      <span>{currentLecture.duration} min</span>
+                    </div>
+                  </div>
+                  
+                  {/* Progress for current lecture */}
+                  {isEnrolled && userProgress[currentLecture.id] && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Lecture Progress</span>
+                        <span className="font-medium text-gray-900">
+                          {Math.round(userProgress[currentLecture.id])}%
+                        </span>
+                      </div>
+                      <Progress value={userProgress[currentLecture.id]} className="h-2" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Lecture Content */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <LectureContent
+                    lecture={currentLecture}
+                    courseId={courseId}
+                    onProgress={handleProgress}
+                    onComplete={handleLectureComplete}
+                  />
+                </div>
+              </div>
             ) : (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-2">Select a Lecture</h2>
-                <p className="text-muted-foreground">
-                  Choose a lecture from the sidebar to start learning.
-                </p>
+              <div className="text-center py-20">
+                <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Play className="h-8 w-8 text-orange-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2 text-gray-900">Ready to Learn?</h2>
+                  <p className="text-gray-600 mb-4">
+                    Choose a lecture from the sidebar to start your learning journey.
+                  </p>
+                  <Button 
+                    onClick={() => setSidebarOpen(true)}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Browse Lectures
+                  </Button>
+                </div>
               </div>
             )}
           </div>

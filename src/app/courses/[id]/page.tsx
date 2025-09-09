@@ -148,11 +148,11 @@ export default function CourseDetailPage() {
             {/* Course Info */}
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                {course.categories.map((category) => (
+                {course.categories?.map((category) => (
                   <Badge key={category} variant="secondary">
                     {category}
                   </Badge>
-                ))}
+                )) || []}
                 <Badge variant="outline" className="capitalize">
                   {course.level}
                 </Badge>
@@ -205,16 +205,16 @@ export default function CourseDetailPage() {
           <Separator />
 
           {/* What You'll Learn */}
-          {course.whatYouWillLearn.length > 0 && (
+          {course.whatYouWillLearn?.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">What you'll learn</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {course.whatYouWillLearn.map((item, index) => (
+                {course.whatYouWillLearn?.map((item, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                     <span className="text-sm">{item}</span>
                   </div>
-                ))}
+                )) || []}
               </div>
             </div>
           )}
@@ -234,16 +234,16 @@ export default function CourseDetailPage() {
           <Separator />
 
           {/* Requirements */}
-          {course.requirements.length > 0 && (
+          {course.requirements?.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">Requirements</h2>
               <ul className="space-y-2">
-                {course.requirements.map((requirement, index) => (
+                {course.requirements?.map((requirement, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
                     <span className="text-sm">{requirement}</span>
                   </li>
-                ))}
+                )) || []}
               </ul>
             </div>
           )}

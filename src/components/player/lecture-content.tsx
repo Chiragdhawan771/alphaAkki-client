@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Download, FileText, ExternalLink } from "lucide-react"
+import { Download, FileText, ExternalLink, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -66,27 +66,32 @@ export function LectureContent({
     switch (lecture.type) {
       case 'video':
         return (
-          <VideoPlayer
-            lectureId={lecture.id}
-            courseId={courseId}
-            onProgress={onProgress}
-            onComplete={onComplete}
-            autoPlay={true}
-          />
+          <div className="bg-black rounded-xl overflow-hidden shadow-lg">
+            <VideoPlayer
+              lectureId={lecture.id}
+              courseId={courseId}
+              videoUrl={lecture.videoUrl}
+              onProgress={onProgress}
+              onComplete={onComplete}
+              autoPlay={true}
+            />
+          </div>
         )
       
       case 'text':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {lecture.title}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+                Reading Material
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8">
               <div 
-                className="prose prose-sm max-w-none"
+                className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-a:text-orange-600 hover:prose-a:text-orange-700"
                 dangerouslySetInnerHTML={{ __html: lecture.content || '' }}
               />
             </CardContent>
@@ -95,25 +100,32 @@ export function LectureContent({
       
       case 'pdf':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {lecture.title}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-red-50 to-pink-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
+                <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+                PDF Document
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">PDF Document</h3>
-                <p className="text-muted-foreground mb-4">
-                  This lecture contains a PDF document for you to read.
+            <CardContent className="p-8">
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-gradient-to-r from-red-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <FileText className="h-10 w-10 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-900">PDF Learning Material</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                  This lecture contains a comprehensive PDF document with detailed information and exercises.
                 </p>
                 {lecture.videoUrl && (
-                  <Button asChild>
+                  <Button 
+                    asChild
+                    className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-6 py-3"
+                  >
                     <a href={lecture.videoUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Open PDF
+                      Open PDF Document
                     </a>
                   </Button>
                 )}
@@ -124,17 +136,33 @@ export function LectureContent({
       
       case 'audio':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>{lecture.title}</CardTitle>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-violet-500 rounded-lg flex items-center justify-center">
+                  <Play className="h-4 w-4 text-white" />
+                </div>
+                Audio Lecture
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              {lecture.videoUrl && (
-                <audio controls className="w-full">
-                  <source src={lecture.videoUrl} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
-              )}
+            <CardContent className="p-8">
+              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6">
+                {lecture.videoUrl ? (
+                  <audio controls className="w-full h-12 bg-white rounded-lg shadow-sm">
+                    <source src={lecture.videoUrl} type="audio/mpeg" />
+                    <source src={lecture.videoUrl} type="audio/wav" />
+                    <source src={lecture.videoUrl} type="audio/ogg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Play className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <p className="text-gray-600">Audio content is being prepared...</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )
@@ -156,69 +184,66 @@ export function LectureContent({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Lecture Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="capitalize">
-            {lecture.type}
-          </Badge>
-          {lecture.isFree && (
-            <Badge variant="secondary">Free</Badge>
-          )}
-        </div>
-        <h1 className="text-2xl font-bold">{lecture.title}</h1>
-        {lecture.description && (
-          <p className="text-muted-foreground">{lecture.description}</p>
-        )}
-      </div>
-
+    <div className="p-6">
       {/* Main Content */}
       <div className="space-y-6">
+
         {renderLectureContent()}
 
         {/* Resources Section */}
         {lecture.resources && lecture.resources.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Resources
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {lecture.resources.map((resource, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <div className="font-medium">{resource.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {resource.type} • {formatFileSize(resource.size)}
+          <div className="mt-6">
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                <CardTitle className="flex items-center gap-2 text-gray-900">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                    <Download className="h-4 w-4 text-white" />
+                  </div>
+                  Lecture Resources
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid gap-3">
+                  {lecture.resources.map((resource, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
+                          <FileText className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{resource.name}</div>
+                          <div className="text-sm text-gray-500 flex items-center gap-2">
+                            <span className="capitalize">{resource.type}</span>
+                            <span>•</span>
+                            <span>{formatFileSize(resource.size)}</span>
+                          </div>
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleResourceDownload(resource)}
+                        disabled={downloadingResource === resource.name}
+                        className="hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700"
+                      >
+                        {downloadingResource === resource.name ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
+                            <span>Downloading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </>
+                        )}
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleResourceDownload(resource)}
-                      disabled={downloadingResource === resource.name}
-                    >
-                      {downloadingResource === resource.name ? (
-                        "Downloading..."
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>

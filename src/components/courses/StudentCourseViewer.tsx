@@ -77,7 +77,7 @@ const StudentCourseViewer: React.FC<StudentCourseViewerProps> = ({ courseId, onB
         
         // Load course content if enrolled
         const courseContent = await simplifiedCourseService.getCourseContent(courseId);
-        setCourse(courseContent);
+        setCourse(courseContent.course);
       }
     } catch (error) {
       // User not enrolled or error - this is fine for public course view
