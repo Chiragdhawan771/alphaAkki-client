@@ -118,7 +118,7 @@ export default function LearnPage() {
   }
 
   const goBackToCourse = () => {
-    router.push(`/courses/${courseId}`)
+    router.push(`/dashboard?tab=courses`)
   }
 
   useEffect(() => {

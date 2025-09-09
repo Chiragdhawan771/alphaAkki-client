@@ -272,7 +272,7 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     <>
-                      <Link href="/courses" className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div onClick={()=>setActiveSection("courses")} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                             Find courses that interest you
                           </p>
                         </div>
-                      </Link>
+                      </div>
                       <button 
                         onClick={() => setActiveSection('courses')}
                         className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
