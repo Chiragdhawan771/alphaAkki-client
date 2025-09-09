@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { enrollmentService, courseService } from "@/services";
 import SimplifiedCourseManager from "@/components/courses/SimplifiedCourseManager";
 import UserCourseViewer from "@/components/courses/UserCourseViewer";
+import EnrollmentStats from "@/components/dashboard/EnrollmentStats";
 import {
   BookOpen,
   Plus,
@@ -79,18 +80,41 @@ export default function DashboardPage() {
             ),
           });
         } else {
-          // Fetch student dashboard data
+          // Fetch student dashboard data with comprehensive stats
           try {
-            const dashboardResponse =
-              await enrollmentService.getUserDashboard();
-            const enrollments = dashboardResponse ;
-            setStats({
-              totalCourses: enrollments.totalCourses,
-              totalStudents: 0,
-              totalRevenue: 0,
-            });
+// <<<<<<< client-dashboard-changes
+//             const dashboardResponse =
+//               await enrollmentService.getUserDashboard();
+//             const enrollments = dashboardResponse ;
+//             setStats({
+//               totalCourses: enrollments.totalCourses,
+//               totalStudents: 0,
+//               totalRevenue: 0,
+//             });
+// =======
+            const dashboardResponse = await enrollmentService.getUserDashboard();
+            const dashboardData = dashboardResponse.data;
+            
+            // Check if we have the new comprehensive data structure
+            if (dashboardData && typeof dashboardData.totalCourses !== 'undefined') {
+              setStats({
+                totalCourses: dashboardData.totalCourses || 0,
+                totalStudents: dashboardData.completed || 0, // Using completed courses for students
+                totalRevenue: Math.round((dashboardData.totalTimeSpent || 0) / 60) || 0, // Using total hours for students
+              });
+            } else {
+              // Fallback to old data structure
+              const enrollments = dashboardData.enrollments || [];
+              setStats({
+                totalCourses: enrollments.length,
+                totalStudents: 0,
+                totalRevenue: 0,
+              });
+            }
+// >>>>>>> main
           } catch (error) {
             // User might not have any enrollments yet
+            console.warn("No enrollment data found:", error);
             setStats({
               totalCourses: 0,
               totalStudents: 0,
@@ -161,55 +185,25 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Quick Actions */}
-            {/* <div className="flex flex-wrap gap-3 mb-6">
-              {isInstructor ? (
-                <>
-                  <Button
-                    onClick={() => setActiveSection("courses")}
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Manage Courses
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button onClick={() => (window.location.href = "/courses")}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Browse Courses
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveSection("courses")}
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    My Courses
-                  </Button>
-                </>
-              )}
-            </div> */}
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        {isInstructor ? "My Courses" : "Enrolled Courses"}
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stats.totalCourses}
-                      </p>
-                    </div>
-                    <BookOpen className="h-8 w-8 text-blue-500" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {isInstructor && (
-                <>
+            {/* Stats Cards - Show instructor stats for instructors, enrollment stats for students */}
+            {isInstructor ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            My Courses
+                          </p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {loading ? "--" : stats.totalCourses}
+                          </p>
+                        </div>
+                        <BookOpen className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -218,7 +212,7 @@ export default function DashboardPage() {
                             Total Students
                           </p>
                           <p className="text-2xl font-bold text-gray-900">
-                            {stats.totalStudents}
+                            {loading ? "--" : stats.totalStudents}
                           </p>
                         </div>
                         <Users className="h-8 w-8 text-green-500" />
@@ -233,16 +227,21 @@ export default function DashboardPage() {
                             Revenue
                           </p>
                           <p className="text-2xl font-bold text-gray-900">
-                            ${stats.totalRevenue.toFixed(2)}
+                            ${loading ? "--" : stats.totalRevenue.toFixed(2)}
                           </p>
                         </div>
                         <DollarSign className="h-8 w-8 text-purple-500" />
                       </div>
                     </CardContent>
                   </Card>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Student Enrollment Statistics */}
+                <EnrollmentStats userId={user?.id} />
+              </>
+            )}
 
             {/* Getting Started */}
             <Card>
@@ -285,7 +284,11 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     <>
+<!-- <<<<<<< client-dashboard-changes
                       <div className="flex items-center gap-3 p-4 border rounded-lg" onClick={()=>setActiveSection("courses")}>
+======= -->
+                      <Link href="/courses" className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+<!-- >>>>>>> main -->
                         <div className="bg-blue-100 p-2 rounded-lg">
                           <BookOpen className="h-5 w-5 text-blue-600" />
                         </div>
@@ -295,8 +298,11 @@ export default function DashboardPage() {
                             Find courses that interest you
                           </p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3 p-4 border rounded-lg">
+                      </Link>
+                      <button 
+                        onClick={() => setActiveSection('courses')}
+                        className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                      >
                         <div className="bg-green-100 p-2 rounded-lg">
                           <BarChart3 className="h-5 w-5 text-green-600" />
                         </div>
@@ -306,7 +312,7 @@ export default function DashboardPage() {
                             Monitor your learning journey
                           </p>
                         </div>
-                      </div>
+                      </button>
                     </>
                   )}
                 </div>

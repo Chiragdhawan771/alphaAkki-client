@@ -35,7 +35,17 @@ class EnrollmentService {
   }
 
   // Get user dashboard (enrolled courses)
-  async getUserDashboard(): Promise<ApiResponse<Dashboard>|any> {
+
+  async getUserDashboard(): Promise<ApiResponse<{
+    totalCourses: number;
+    inProgress: number;
+    completed: number;
+    certificates: number;
+    totalTimeSpent: number;
+    avgProgress: number;
+    enrollments: Enrollment[];
+    recentCourses: Enrollment[];
+  }>> {
     try {
       const response = await axiosInstance.get('/enrollments/dashboard');
       return response.data;
@@ -143,7 +153,7 @@ class EnrollmentService {
     }
   }
 
-  // Get user dashboard statistics
+  // Get user dashboard statistics (alias for getUserDashboard)
   async getUserDashboardStats(): Promise<ApiResponse<{
     totalCourses: number;
     completedCourses: number;
@@ -152,8 +162,18 @@ class EnrollmentService {
     averageProgress: number;
   }>> {
     try {
-      const response = await axiosInstance.get('/enrollments/dashboard');
-      return response.data;
+      const response = await this.getUserDashboard();
+      const data = response.data;
+      return {
+        success: true,
+        data: {
+          totalCourses: data.totalCourses,
+          completedCourses: data.completed,
+          certificates: data.certificates,
+          totalHours: Math.round(data.totalTimeSpent / 60), // Convert to hours
+          averageProgress: data.avgProgress
+        }
+      };
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to fetch dashboard stats');

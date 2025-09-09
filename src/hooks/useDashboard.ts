@@ -17,9 +17,21 @@ export interface CourseProgressSummary {
 export interface DashboardStats {
   totalCourses: number;
   completedCourses: number;
+  inProgress: number;
   totalHours: number;
   certificates: number;
   averageProgress: number;
+}
+
+export interface DashboardData {
+  totalCourses: number;
+  inProgress: number;
+  completed: number;
+  certificates: number;
+  totalTimeSpent: number;
+  avgProgress: number;
+  enrollments: any[];
+  recentCourses: any[];
 }
 
 export const useDashboard = () => {
@@ -27,11 +39,13 @@ export const useDashboard = () => {
   const { toast } = useToast();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [progressData, setProgressData] = useState<CourseProgressSummary[]>([]);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalCourses: 0,
     completedCourses: 0,
+    inProgress: 0,
     totalHours: 0,
     certificates: 0,
     averageProgress: 0
@@ -44,44 +58,56 @@ export const useDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch enrollments
+      // Fetch comprehensive dashboard data
       const dashboardResponse = await enrollmentService.getUserDashboard();
-      const enrollments = dashboardResponse.data.enrollments;
-      setEnrollments(enrollments);
+      const dashboardData = dashboardResponse.data;
+      setDashboardData(dashboardData);
       
-      // Fetch progress for each enrollment
-      const progressPromises = enrollments.map((enrollment: Enrollment) => 
-        progressService.getCourseProgress(enrollment.course)
-      );
-      const progressResults = await Promise.all(progressPromises);
-      const progressDataArray = progressResults.map(result => result.data);
-      setProgressData(progressDataArray);
+      // Set enrollments from dashboard data
+      setEnrollments(dashboardData.enrollments || []);
       
-      // Calculate stats
-      const totalCourses = enrollments.length;
-      const completedCourses = progressDataArray.filter(p => p.progressPercentage >= 100).length;
-      const totalHours = progressDataArray.reduce((sum: number, p) => sum + (p.totalTimeSpent / 3600), 0);
-      const averageProgress = totalCourses > 0 
-        ? progressDataArray.reduce((sum: number, p) => sum + p.progressPercentage, 0) / totalCourses 
-        : 0;
+      // Calculate stats from dashboard data
+      const totalHours = Math.round((dashboardData.totalTimeSpent || 0) / 60); // Convert from seconds to hours
       
       setStats({
-        totalCourses,
-        completedCourses,
-        totalHours: Math.round(totalHours),
-        certificates: completedCourses,
-        averageProgress: Math.round(averageProgress)
+        totalCourses: dashboardData.totalCourses || 0,
+        completedCourses: dashboardData.completed || 0,
+        inProgress: dashboardData.inProgress || 0,
+        totalHours,
+        certificates: dashboardData.certificates || 0,
+        averageProgress: dashboardData.avgProgress || 0
       });
+      
+      // If we have enrollments, fetch detailed progress for each
+      if (dashboardData.enrollments && dashboardData.enrollments.length > 0) {
+        try {
+          const progressPromises = dashboardData.enrollments.map((enrollment: any) => 
+            progressService.getCourseProgress(enrollment.course._id || enrollment.course)
+          );
+          const progressResults = await Promise.allSettled(progressPromises);
+          const successfulResults = progressResults
+            .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
+            .map(result => result.value.data);
+          setProgressData(successfulResults);
+        } catch (progressError) {
+          console.warn('Could not fetch detailed progress data:', progressError);
+          // Continue without detailed progress data
+        }
+      }
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       const errorMessage = 'Failed to load dashboard data';
       setError(errorMessage);
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      });
+      
+      // Don't show error toast for missing enrollments
+      if (!error?.toString().includes('404')) {
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +115,7 @@ export const useDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [user, toast]);
+  }, [user]);
 
   const getCourseProgress = (courseId: string) => {
     const progress = progressData.find(p => p.courseId === courseId);
@@ -107,6 +133,7 @@ export const useDashboard = () => {
   return {
     enrollments,
     progressData,
+    dashboardData,
     loading,
     error,
     stats,
