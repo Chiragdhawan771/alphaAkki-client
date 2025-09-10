@@ -1,6 +1,3 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-
 export function NewsletterSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-red-500 to-pink-600">
@@ -10,29 +7,30 @@ export function NewsletterSection() {
         <div className="absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-white/5 blur-2xl"></div>
         <div className="absolute top-1/4 right-1/4 h-3 w-3 rounded-full bg-white/30 animate-bounce"></div>
         <div className="absolute bottom-1/3 left-1/4 h-2 w-2 rounded-full bg-white/40"></div>
-        
+
         {/* Grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:20px_20px]"></div>
       </div>
-      
-      <div className="container relative py-16 sm:py-20 lg:py-24 px-4 max-w-7xl mx-auto">
+
+      <div className="container relative py-8 sm:py-20 lg:py-24 px-4 max-w-7xl mx-auto">
         <div className="mx-auto max-w-4xl text-center space-y-8">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
             <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
             Stay Updated with AlphaAkki
           </div>
-          
+
           <h2 className="font-bold text-3xl sm:text-4xl lg:text-6xl leading-tight text-white">
             Never Miss a Learning Opportunity
           </h2>
           <p className="text-white/90 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
-            Join 50,000+ learners who get exclusive access to new courses, industry insights, 
-            career tips, and special offers delivered straight to their inbox.
+            Join and get exclusive access to new courses,
+            industry insights, career tips, and special offers delivered
+            straight to their inbox.
           </p>
-          
+
           {/* Newsletter form */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto border border-white/20">
+          {/* <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto border border-white/20">
             <div className="flex flex-col sm:flex-row gap-4">
               <Input 
                 type="email" 
@@ -49,10 +47,10 @@ export function NewsletterSection() {
                 </svg>
               </Button>
             </div>
-          </div>
-          
+          </div> */}
+
           {/* Benefits */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-8">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-8">
             <div className="flex items-center justify-center sm:justify-start gap-3 text-white/90">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,13 +75,13 @@ export function NewsletterSection() {
               </div>
               <span className="font-medium">Career Insights</span>
             </div>
-          </div>
-          
+          </div> */}
+
           <p className="text-white/70 text-sm">
             ✨ Join our community • 📧 No spam, ever • 🚀 Unsubscribe anytime
           </p>
         </div>
       </div>
     </section>
-  )
+  );
 }

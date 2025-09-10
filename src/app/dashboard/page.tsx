@@ -65,6 +65,7 @@ export default function DashboardPage() {
           const coursesResponse = await courseService.getCourses({
             limit: 100,
           });
+          console.log(coursesResponse,"coursesResponsecoursesResponse")
           const courses = coursesResponse.data || [];
           setStats({
             totalCourses: courses.length,
@@ -81,6 +82,16 @@ export default function DashboardPage() {
         } else {
           // Fetch student dashboard data with comprehensive stats
           try {
+// <<<<<<< client-dashboard-changes
+//             const dashboardResponse =
+//               await enrollmentService.getUserDashboard();
+//             const enrollments = dashboardResponse ;
+//             setStats({
+//               totalCourses: enrollments.totalCourses,
+//               totalStudents: 0,
+//               totalRevenue: 0,
+//             });
+// =======
             const dashboardResponse = await enrollmentService.getUserDashboard();
             const dashboardData = dashboardResponse.data;
             
@@ -100,6 +111,7 @@ export default function DashboardPage() {
                 totalRevenue: 0,
               });
             }
+// >>>>>>> main
           } catch (error) {
             // User might not have any enrollments yet
             console.warn("No enrollment data found:", error);

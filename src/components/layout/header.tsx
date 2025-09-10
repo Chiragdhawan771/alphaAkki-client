@@ -50,7 +50,7 @@ export function Header() {
               About
             </Link>
             <a
-              href="#contact"
+              href="/contact/"
               className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200"
             >
               Contact

@@ -1,12 +1,25 @@
-
-"use client"
-import React, { useState, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Star, Clock, Users, BookOpen, Play, CreditCard, Loader2 } from 'lucide-react';
-import { SimplifiedCourse } from '@/services/simplifiedCourseService';
-import { usePayment } from '@/hooks/usePayment';
+"use client";
+import React, { useState, useRef } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Star,
+  Clock,
+  Users,
+  BookOpen,
+  Play,
+  CreditCard,
+  Loader2,
+} from "lucide-react";
+import { SimplifiedCourse } from "@/services/simplifiedCourseService";
+import { usePayment } from "@/hooks/usePayment";
 
 interface CourseCardProps {
   course: SimplifiedCourse;
@@ -25,7 +38,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   onContinue,
   isEnrolled = false,
   showActions = true,
-  compact = false
+  compact = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
@@ -37,7 +50,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
       <Star
         key={i}
         className={`h-3 w-3 ${
-          i < Math.round(rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          i < Math.round(rating)
+            ? "text-yellow-400 fill-current"
+            : "text-gray-300"
         }`}
       />
     ));
@@ -68,23 +83,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   const handleEnrollClick = async () => {
-    console.log('CourseCard handleEnrollClick called for course:', course._id, 'type:', course.type);
-    console.log('onEnroll prop:', onEnroll);
-    
-    if (course.type === 'free') {
-      console.log('Enrolling in free course');
+    console.log(
+      "CourseCard handleEnrollClick called for course:",
+      course._id,
+      "type:",
+      course.type
+    );
+    console.log("onEnroll prop:", onEnroll);
+
+    if (course.type === "free") {
+      console.log("Enrolling in free course");
       await enrollInFreeCourse(course._id);
     } else {
-      console.log('Initiating payment for paid course');
+      console.log("Initiating payment for paid course");
       await initiatePayment(course._id);
     }
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+    <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 rounded-3xl bg-white">
       {/* Course Image/Video */}
-      <div 
-        className="relative overflow-hidden"
+      <div
+        className="relative overflow-hidden "
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -94,32 +114,34 @@ const CourseCard: React.FC<CourseCardProps> = ({
             src={course.thumbnail}
             alt={course.title}
             className={`w-full object-cover rounded-t-lg transition-opacity duration-300 ${
-              compact ? 'h-32' : 'h-48'
-            } ${showVideo ? 'opacity-0' : 'opacity-100'}`}
+              compact ? "h-48" : "h-52"
+            } ${showVideo ? "opacity-0" : "opacity-100"}`}
           />
         ) : (
-          <div className={`w-full bg-gradient-to-br from-orange-400 to-red-500 rounded-t-lg flex items-center justify-center transition-opacity duration-300 ${
-            compact ? 'h-32' : 'h-48'
-          } ${showVideo ? 'opacity-0' : 'opacity-100'}`}>
+          <div
+            className={`w-full bg-gradient-to-br from-orange-400 to-red-500 rounded-t-lg flex items-center justify-center transition-opacity duration-300 ${
+              compact ? "h-48" : "h-52"
+            } ${showVideo ? "opacity-0" : "opacity-100"}`}
+          >
             <BookOpen className="h-12 w-12 text-white" />
           </div>
         )}
-        
+
         {/* Preview Video */}
         {course.previewVideo && (
           <video
             ref={videoRef}
             src={course.previewVideo}
             className={`absolute inset-0 w-full object-cover rounded-t-lg transition-opacity duration-300 ${
-              compact ? 'h-32' : 'h-48'
-            } ${showVideo ? 'opacity-100' : 'opacity-0'}`}
-            muted
+              compact ? "h-48" : "h-52"
+            } ${showVideo ? "opacity-100" : "opacity-0"}`}
+            // muted
             loop
             playsInline
             preload="metadata"
           />
         )}
-        
+
         {/* Play Icon Overlay */}
         {course.previewVideo && !showVideo && isHovered && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-t-lg">
@@ -128,27 +150,46 @@ const CourseCard: React.FC<CourseCardProps> = ({
             </div>
           </div>
         )}
-        
-        {/* Price Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <Badge variant={course.type === 'free' ? 'secondary' : 'default'} className="shadow-md">
-            {course.type === 'free' ? 'Free' : `$${course.price}`}
+
+        <div className="absolute bottom-3 right-3 z-10">
+          <Badge
+            variant={course.type === "free" ? "secondary" : "outline"}
+            className="bg-white/90 shadow-md"
+          >
+            {[course.instructor.firstName, course.instructor.lastName].join(
+              " "
+            )}
           </Badge>
         </div>
 
         {/* Category Badge */}
+
+        <div className="absolute top-3 left-3 z-10">
+          <Badge variant="outline" className="bg-white/90 shadow-md">
+            <Clock className="h-3 w-3 text-gray-400" />
+            <span>
+              {course.estimatedDuration
+                ? `${course.estimatedDuration} Hours`
+                : "Self-paced"}
+            </span>
+          </Badge>
+        </div>
+
         {course.category && (
-          <div className="absolute top-3 left-3 z-10">
+          <div className="absolute top-3 right-3 z-10">
             <Badge variant="outline" className="bg-white/90 shadow-md">
               {course.category}
             </Badge>
           </div>
         )}
-        
+
         {/* Video Count Badge */}
         {course.videos && course.videos.length > 0 && (
           <div className="absolute bottom-3 left-3 z-10">
-            <Badge variant="outline" className="bg-black/70 text-white border-white/20">
+            <Badge
+              variant="outline"
+              className="bg-black/70 text-white border-white/20"
+            >
               <Play className="h-3 w-3 mr-1" />
               {course.videos.length} videos
             </Badge>
@@ -156,44 +197,32 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
       </div>
 
-      <CardHeader className={compact ? 'pb-2' : 'pb-3'}>
-        <CardTitle className={`line-clamp-2 ${compact ? 'text-base' : 'text-lg'}`}>
+      <CardHeader className={compact ? "pb-2" : "pb-3"}>
+        <CardTitle
+          className={`line-clamp-2 ${compact ? "text-base" : "text-lg"}`}
+        >
           {course.title}
         </CardTitle>
-        
+        <CardDescription className={`line-clamp-2`}>
+          {course.shortDescription}
+        </CardDescription>
+
         {/* Rating and Reviews */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
-              {course.level}
+              {course.level || "Beginner"}
             </Badge>
-            <Badge variant="outline" className="text-xs">
+          {!isEnrolled &&  <Badge variant="outline" className="text-xs">
               {course.type}
-            </Badge>
-          </div>
-          <div className="text-right">
-            <p className="text-lg font-bold text-orange-600">
-              {course.type === 'free' ? 'Free' : `₹${course.price}`}
-            </p>
-            {course.type === 'paid' && course.price && (
-              <p className="text-xs text-gray-500">One-time payment</p>
+            </Badge>}
+            {!isEnrolled && course.type === "paid" && course.price && (
+              <Badge variant="outline" className="text-xs">
+                One-time payment
+              </Badge>
             )}
           </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            {renderStars(course.averageRating)}
-            <span className="font-medium text-sm ml-1">
-              {course.averageRating > 0 ? course.averageRating.toFixed(1) : 'New'}
-            </span>
-            {course.totalReviews > 0 && (
-              <span className="text-xs text-gray-500">({course.totalReviews})</span>
-            )}
-          </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <Users className="h-3 w-3 mr-1" />
-            {course.enrollmentCount}
-          </div>
+          
         </div>
       </CardHeader>
 
@@ -207,27 +236,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
         {/* Course Details */}
         <div className="space-y-2 mb-4 flex-1">
-          {/* Duration and Instructor */}
-          <div className="flex justify-between items-center text-xs">
-            <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3 text-gray-400" />
-              <span>{course.estimatedDuration ? `${course.estimatedDuration}h` : 'Self-paced'}</span>
-            </div>
-            <span className="text-gray-500 truncate max-w-[120px]">
-              {course.instructor.firstName} {course.instructor.lastName}
-            </span>
-          </div>
-
-          {/* Tags */}
           {course.tags && course.tags.length > 0 && !compact && (
             <div className="flex flex-wrap gap-1">
               {course.tags.slice(0, 2).map((tag, index) => (
-                <Badge key={index} variant="outline" className="text-xs px-1 py-0">
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="text-xs px-1 py-0"
+                >
                   {tag}
                 </Badge>
               ))}
               {course.tags.length > 2 && (
-                <span className="text-xs text-gray-500">+{course.tags.length - 2}</span>
+                <span className="text-xs text-gray-500">
+                  +{course.tags.length - 2}
+                </span>
               )}
             </div>
           )}
@@ -237,8 +260,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {showActions && (
           <div className="flex space-x-2 mt-auto">
             {onViewDetails && (
-              <Button 
-                className="flex-1" 
+              <Button
+                className="flex-1"
                 variant="outline"
                 size={compact ? "sm" : "default"}
                 onClick={() => onViewDetails(course._id)}
@@ -248,8 +271,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
             )}
             {isEnrolled ? (
               onContinue && (
-                <Button 
-                  className="flex-1" 
+                <Button
+                  className="flex-1"
                   size={compact ? "sm" : "default"}
                   onClick={() => onContinue(course._id)}
                 >
@@ -258,21 +281,23 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </Button>
               )
             ) : (
-              <Button 
-                className="flex-1" 
+              <Button
+                className="flex-1"
                 size={compact ? "sm" : "default"}
-                onClick={onEnroll ? () => onEnroll(course._id) : handleEnrollClick}
+                onClick={
+                  onEnroll ? () => onEnroll(course._id) : handleEnrollClick
+                }
                 disabled={paymentState.isProcessing}
               >
                 {paymentState.isProcessing ? (
                   <>
                     <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                    {course.type === 'free' ? 'Enrolling...' : 'Processing...'}
+                    {course.type === "free" ? "Enrolling..." : "Processing..."}
                   </>
                 ) : (
                   <>
-                    {course.type === 'free' ? (
-                      'Enroll Free'
+                    {course.type === "free" ? (
+                      "Enroll Free"
                     ) : (
                       <>
                         <CreditCard className="h-3 w-3 mr-1" />
@@ -286,7 +311,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </div>
         )}
       </CardContent>
-
     </Card>
   );
 };
