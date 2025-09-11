@@ -165,7 +165,7 @@ export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange 
         <Separator />
 
         {/* Requirements */}
-        {course.requirements.length > 0 && (
+        {course?.requirements?.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-semibold text-sm">Requirements:</h4>
             <ul className="space-y-1">

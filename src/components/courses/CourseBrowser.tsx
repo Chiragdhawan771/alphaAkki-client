@@ -185,7 +185,7 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = 'student' }) =
               onViewDetails={() => setSelectedCourse(course._id)}
               onEnroll={undefined}
               onContinue={() => setSelectedCourse(course._id)}
-              isEnrolled={enrolledCourses.has(course._id)}
+              isEnrolled={enrolledCourses?.has(course._id)}
               showActions={true}
             />
           ))}
