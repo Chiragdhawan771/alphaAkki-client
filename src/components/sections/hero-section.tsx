@@ -269,8 +269,9 @@ export function HeroSection() {
           ) : featuredCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredCourses.map((course) => {
-                const isEnroll=enrolledCourses?.recentCourses?.some((c:any)=> c.course._id==course._id
-                )
+                const isEnroll=enrolledCourses?.data?.recentCourses?.some((c:any)=> c.course._id==course._id
+              )
+              console.log(enrolledCourses,"isEnroll",course)
                 return (
                 <CourseCard
                   key={course._id}
@@ -279,9 +280,7 @@ export function HeroSection() {
                   onEnroll={undefined}
                   compact={true}
                   isEnrolled={isEnroll}
-                  onContinue={() =>
-                    (window.location.href = `/courses/${course._id}`)
-                  }
+                  onContinue={() => window.location.href = `/learn/${course._id}`}
                 />
               )})}
             </div>
