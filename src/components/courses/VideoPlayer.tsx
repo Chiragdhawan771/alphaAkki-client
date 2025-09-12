@@ -254,8 +254,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="w-full">
-        <div className="relative bg-black rounded-lg overflow-hidden">
+    <div className="w-full max-w-full">
+        <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
           {loadingVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black">
               <div className="text-white text-center">
@@ -322,30 +322,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
           
           {/* Video Controls Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2 sm:p-4">
             {/* Progress Bar */}
-            <div className="mb-3">
+            <div className="mb-2 sm:mb-3">
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={progress}
                 onChange={handleSeek}
-                className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 sm:h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider touch-manipulation"
               />
             </div>
             
             {/* Control Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => skipTime(-10)}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   title="Rewind 10s"
                 >
-                  <SkipBack className="h-4 w-4" />
+                  <SkipBack className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Button
@@ -353,29 +353,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   variant="ghost"
                   onClick={togglePlay}
                   disabled={loadingVideo || !!videoError}
-                  className="text-white hover:bg-white/20 disabled:opacity-50"
+                  className="text-white hover:bg-white/20 disabled:opacity-50 p-1 sm:p-2 min-w-[40px] h-9 sm:h-10"
                 >
-                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  {isPlaying ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" /> : <Play className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
                 
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => skipTime(10)}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   title="Forward 10s"
                 >
-                  <SkipForward className="h-4 w-4" />
+                  <SkipForward className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
-                <div className="flex items-center space-x-2 ml-4">
+                <div className="hidden sm:flex items-center space-x-2 ml-2 sm:ml-4">
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={toggleMute}
-                    className="text-white hover:bg-white/20"
+                    className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   >
-                    {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    {isMuted ? <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" /> : <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
                   
                   <input
@@ -385,76 +385,88 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     step="0.1"
                     value={isMuted ? 0 : volume}
                     onChange={handleVolumeChange}
-                    className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                    className="w-12 sm:w-16 h-2 sm:h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer touch-manipulation"
                   />
                 </div>
+                
+                {/* Mobile Volume Control */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={toggleMute}
+                  className="sm:hidden text-white hover:bg-white/20 p-1 min-w-[36px] h-8"
+                >
+                  {isMuted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                </Button>
               </div>
               
-              <div className="flex items-center space-x-4">
-                <span className="text-white text-sm">
+              <div className="flex items-center space-x-1 sm:space-x-4 flex-shrink-0">
+                <span className="text-white text-xs sm:text-sm whitespace-nowrap">
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
                 
                 {/* Playback Speed */}
-                <div className="relative">
+                <div className="relative hidden sm:block">
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowSettings(!showSettings)}
-                    className="text-white hover:bg-white/20"
+                    className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                     title="Playback Speed"
                   >
-                    <Settings className="h-4 w-4" />
+                    <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   
                   {showSettings && (
-                    <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg p-2 min-w-[120px]">
-                      <div className="text-white text-xs mb-2">Speed</div>
-                      {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
-                        <button
-                          key={rate}
-                          onClick={() => changePlaybackRate(rate)}
-                          className={`block w-full text-left px-2 py-1 text-xs rounded hover:bg-white/20 ${
-                            playbackRate === rate ? 'bg-white/30 text-orange-400' : 'text-white'
-                          }`}
-                        >
-                          {rate}x
-                        </button>
-                      ))}
+                    <div className="absolute bottom-full right-0 mb-2 bg-black/95 rounded-lg p-3 min-w-[140px] shadow-xl border border-white/10">
+                      <div className="text-white text-xs mb-3 font-medium">Playback Speed</div>
+                      <div className="space-y-1">
+                        {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
+                          <button
+                            key={rate}
+                            onClick={() => changePlaybackRate(rate)}
+                            className={`block w-full text-left px-3 py-2 text-sm rounded-md hover:bg-white/20 transition-colors ${
+                              playbackRate === rate ? 'bg-orange-500/80 text-white font-medium' : 'text-white/90'
+                            }`}
+                          >
+                            {rate}x {rate === 1 ? '(Normal)' : ''}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
                 
-                {/* Blocked Download Button */}
+                {/* Blocked Download Button - Hidden on mobile */}
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={preventDownload}
-                  className="text-white/50 cursor-not-allowed"
+                  className="hidden sm:flex text-white/50 cursor-not-allowed p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   title="Download Disabled"
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
-                {/* Blocked Share Button */}
+                {/* Blocked Share Button - Hidden on mobile */}
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={preventShare}
-                  className="text-white/50 cursor-not-allowed"
+                  className="hidden sm:flex text-white/50 cursor-not-allowed p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   title="Sharing Disabled"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={toggleFullscreen}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   title="Fullscreen"
                 >
-                  <Maximize className="h-4 w-4" />
+                  <Maximize className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
