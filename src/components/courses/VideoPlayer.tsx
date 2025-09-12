@@ -80,13 +80,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       try {
         setLoadingVideo(true);
         setVideoError(null);
-        // Try to get secure streaming URL
-        const response = await streamingService.getVideoStreamUrl(lectureId);
-        setSecureVideoUrl(response.data.url);
+        
+        // Use the secure video URL directly if it's already a signed URL
+        if (videoUrl && videoUrl.includes('amazonaws.com') && videoUrl.includes('X-Amz-Signature')) {
+          setSecureVideoUrl(videoUrl);
+          return;
+        }
+        
+        // For non-secure URLs, use the original URL as fallback
+        setSecureVideoUrl(videoUrl);
       } catch (error) {
-        console.error('Failed to load secure video:', error);
-        setVideoError('Failed to load secure video. Trying fallback...');
-        // Fallback to original URL
+        console.error('Failed to load video:', error);
+        setVideoError('Failed to load video. Please try again.');
         setSecureVideoUrl(videoUrl);
       }
     };
