@@ -1,35 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, AlertCircle } from 'lucide-react';
-import secureVideoService from '@/services/secureVideoService';
-
-interface Video {
-  title: string;
-  videoUrl: string;
-  videoKey: string;
-  duration: number;
-  order: number;
-  uploadedAt: string;
-}
+import { streamingService } from '@/services';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface VideoPlayerProps {
-  video: Video;
-  courseId?: string;
-  videoIndex?: number;
-  onVideoEnd?: () => void;
+  lectureId: string;
+  videoUrl: string;
+  title?: string;
   onProgress?: (progress: number) => void;
+  onComplete?: () => void;
   autoPlay?: boolean;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
-  video, 
-  courseId,
-  videoIndex,
-  onVideoEnd, 
+  lectureId,
+  videoUrl,
+  title,
   onProgress, 
+  onComplete,
   autoPlay = false 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -52,7 +43,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const updateDuration = () => setDuration(videoElement.duration);
     const handleEnded = () => {
       setIsPlaying(false);
-      onVideoEnd?.();
+      onComplete?.();
     };
     const handleError = () => {
       setVideoError('Failed to load video. Please try again.');
@@ -81,38 +72,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       videoElement.removeEventListener('loadstart', handleLoadStart);
       videoElement.removeEventListener('canplay', handleCanPlay);
     };
-  }, [onVideoEnd]);
+  }, [onComplete]);
 
   // Load secure video URL
   useEffect(() => {
     const loadSecureVideo = async () => {
-      if (courseId && videoIndex !== undefined) {
-        try {
-          setLoadingVideo(true);
-          setVideoError(null);
-          const secureUrl = await secureVideoService.createSecureVideoUrl(courseId, videoIndex);
-          setSecureVideoUrl(secureUrl);
-        } catch (error) {
-          console.error('Failed to load secure video:', error);
-          setVideoError('Failed to load secure video. Trying fallback...');
-          // Fallback to original URL
-          setSecureVideoUrl(video.videoUrl);
-        }
-      } else {
-        // Use original URL if no secure streaming is needed
-        setSecureVideoUrl(video.videoUrl);
+      try {
+        setLoadingVideo(true);
+        setVideoError(null);
+        // Try to get secure streaming URL
+        const response = await streamingService.getVideoStreamUrl(lectureId);
+        setSecureVideoUrl(response.data.url);
+      } catch (error) {
+        console.error('Failed to load secure video:', error);
+        setVideoError('Failed to load secure video. Trying fallback...');
+        // Fallback to original URL
+        setSecureVideoUrl(videoUrl);
       }
     };
 
     loadSecureVideo();
-
-    // Cleanup function to revoke blob URLs
-    return () => {
-      if (secureVideoUrl && secureVideoUrl.startsWith('blob:')) {
-        secureVideoService.revokeVideoUrl(secureVideoUrl);
-      }
-    };
-  }, [courseId, videoIndex, video.videoUrl]);
+  }, [lectureId, videoUrl]);
 
   useEffect(() => {
     if (onProgress && duration > 0) {
@@ -194,7 +174,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-lg">{video.title}</CardTitle>
+        <CardTitle className="text-lg">{title || 'Video Lecture'}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative bg-black rounded-lg overflow-hidden">

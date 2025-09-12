@@ -127,7 +127,7 @@ export function EnrolledCourseCard({
         {/* Action Button */}
         <div className="pt-2">
           <Button asChild className="w-full">
-            <Link href={`/learn/${course.id}${lastAccessedLecture ? `?lecture=${lastAccessedLecture}` : ''}`}>
+            <Link href={`/courses/${course.id}/learn${lastAccessedLecture ? `?lecture=${lastAccessedLecture}` : ''}`}>
               {enrollment.status === 'completed' ? 'Review Course' : 
                progress === 0 ? 'Start Learning' : 'Continue Learning'}
             </Link>
