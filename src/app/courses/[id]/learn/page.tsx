@@ -191,7 +191,7 @@ export default function CourseLearningPage() {
 
   const navigateToVideo = (video: Video, index: number) => {
     setCurrentVideo(video)
-    router.push(`/courses/${courseId}/learn?video=${index}`, { scroll: false })
+    router.push(`/courses/${courseId}/learn?video=${video.order}`, { scroll: false })
   }
 
   // Progress tracking removed
@@ -207,7 +207,8 @@ export default function CourseLearningPage() {
     const currentIndex = course.videos.findIndex((v: Video) => v.order === currentVideo.order)
     if (currentIndex > 0) {
       const prevVideo = course.videos[currentIndex - 1]
-      navigateToVideo(prevVideo, currentIndex - 1)
+      setCurrentVideo(prevVideo)
+      router.push(`/courses/${courseId}/learn?video=${prevVideo.order}`, { scroll: false })
     }
   }
 
@@ -217,7 +218,8 @@ export default function CourseLearningPage() {
     const currentIndex = course.videos.findIndex((v: Video) => v.order === currentVideo.order)
     if (currentIndex < course.videos.length - 1) {
       const nextVideo = course.videos[currentIndex + 1]
-      navigateToVideo(nextVideo, currentIndex + 1)
+      setCurrentVideo(nextVideo)
+      router.push(`/courses/${courseId}/learn?video=${nextVideo.order}`, { scroll: false })
     }
   }
 
@@ -285,54 +287,66 @@ export default function CourseLearningPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar - Video List */}
           <div className={cn(
             "lg:col-span-1 space-y-4",
             sidebarOpen ? "block" : "hidden",
             "lg:block"
           )}>
-            <Card>
-              <CardHeader className="pb-3 space-y-2">
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Course Content</CardTitle>
-                  <span className="text-xs text-gray-500">{course.videos.length} videos</span>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Course Content</CardTitle>
+                  <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{course.videos.length} videos</span>
                 </div>
                 <div className="relative">
                   <input
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder="Search videos..."
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 bg-gray-50 focus:bg-white"
                   />
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2 max-h-[28rem] overflow-y-auto">
+              <CardContent className="space-y-3 max-h-[32rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {course.videos
                   .filter((v) => v.title.toLowerCase().includes(filter.toLowerCase()))
                   .map((video: Video, index: number) => (
                   <div
                     key={index}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                      "flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 group",
                       currentVideo?.order === video.order
-                        ? "bg-primary/10 border border-primary/20"
-                        : "hover:bg-muted/50"
+                        ? "bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300 shadow-md"
+                        : "hover:bg-gray-50 hover:shadow-md border border-gray-200"
                     )}
                     onClick={() => navigateToVideo(video, index)}
                   >
                     <div className="flex-shrink-0">
-                      <Play className="h-5 w-5 text-muted-foreground" />
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200",
+                        currentVideo?.order === video.order
+                          ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-orange-100 group-hover:text-orange-600"
+                      )}>
+                        <Play className="h-4 w-4" />
+                      </div>
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
+                      <div className={cn(
+                        "font-semibold text-sm truncate transition-colors duration-200",
+                        currentVideo?.order === video.order
+                          ? "text-orange-800"
+                          : "text-gray-900 group-hover:text-orange-700"
+                      )}>
                         {index + 1}. {video.title}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                         <Clock className="h-3 w-3" />
-                        <span>{video.duration ? `${Math.ceil(video.duration / 60)} min` : 'N/A'}</span>
+                        <span>{video.duration ? `${Math.ceil(video.duration / 60)} minutes` : 'Duration not available'}</span>
                       </div>
                     </div>
                   </div>
@@ -342,58 +356,60 @@ export default function CourseLearningPage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-8">
             {currentVideo ? (
               <>
                 {/* Video Content */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{currentVideo.title}</h2>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                        <Badge variant="outline">Video</Badge>
-                        {currentVideo.duration && (
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{Math.ceil(currentVideo.duration / 60)} minutes</span>
-                          </div>
-                        )}
-                        {/* Completed badge removed */}
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">{currentVideo.title}</h2>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full">Video Lecture</Badge>
+                          {currentVideo.duration && (
+                            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-full">
+                              <Clock className="h-4 w-4" />
+                              <span className="font-medium">{Math.ceil(currentVideo.duration / 60)} minutes</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Video Player */}
+                    <div className="rounded-xl overflow-hidden shadow-2xl">
+                      <VideoPlayer
+                        lectureId={currentVideo.videoKey}
+                        videoUrl={currentVideo.videoUrl}
+                        title={currentVideo.title}
+                      />
                     </div>
                   </div>
 
-                  {/* Video Player */}
-                  <VideoPlayer
-                    lectureId={currentVideo.videoKey}
-                    videoUrl={currentVideo.videoUrl}
-                    title={currentVideo.title}
-                  />
-
                   {/* Up Next */}
                   {course.videos.length > 1 && getCurrentVideoIndex() < course.videos.length && (
-                    <div className="mt-4 rounded-lg border p-4 bg-white">
+                    <div className="mt-6 rounded-xl border border-gray-200 p-6 bg-gradient-to-r from-orange-50 to-red-50">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs uppercase tracking-wide text-gray-500">Up next</div>
-                          <div className="font-medium">
+                        <div className="flex-1">
+                          <div className="text-xs uppercase tracking-wider text-orange-600 font-semibold mb-2">Up next</div>
+                          <div className="font-semibold text-gray-900 text-lg mb-1">
                             {course.videos[getCurrentVideoIndex()].title}
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                            <Clock className="h-3 w-3" />
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
                             <span>
                               {course.videos[getCurrentVideoIndex()].duration
-                                ? `${Math.ceil(course.videos[getCurrentVideoIndex()].duration / 60)} min`
-                                : 'N/A'}
+                                ? `${Math.ceil(course.videos[getCurrentVideoIndex()].duration / 60)} minutes`
+                                : 'Duration not available'}
                             </span>
                           </div>
                         </div>
                         <Button
-                          variant="outline"
                           onClick={goToNextVideo}
-                          className="flex items-center gap-2"
+                          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
                         >
-                          Play next
+                          Play Next
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
@@ -402,31 +418,33 @@ export default function CourseLearningPage() {
                 </div>
 
                 {/* Navigation */}
-                <div className="flex items-center justify-between pt-6 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={goToPreviousVideo}
-                    disabled={getCurrentVideoIndex() === 1}
-                    className="flex items-center space-x-2"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>Previous</span>
-                  </Button>
+                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={goToPreviousVideo}
+                      disabled={getCurrentVideoIndex() === 1}
+                      className="flex items-center space-x-2 px-6 py-3 rounded-xl border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span className="font-medium">Previous</span>
+                    </Button>
 
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      Video {getCurrentVideoIndex()} of {course.videos.length}
-                    </p>
+                    <div className="text-center bg-gray-50 px-6 py-3 rounded-xl">
+                      <p className="text-sm font-semibold text-gray-700">
+                        Video {getCurrentVideoIndex()} of {course.videos.length}
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={goToNextVideo}
+                      disabled={getCurrentVideoIndex() === course.videos.length}
+                      className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-
-                  <Button
-                    onClick={goToNextVideo}
-                    disabled={getCurrentVideoIndex() === course.videos.length}
-                    className="flex items-center space-x-2"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
                 </div>
               </>
             ) : (

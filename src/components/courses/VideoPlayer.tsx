@@ -1,17 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, AlertCircle } from 'lucide-react';
-import { streamingService } from '@/services';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 
 interface VideoPlayerProps {
   lectureId: string;
   videoUrl: string;
   title?: string;
-  onProgress?: (progress: number) => void;
-  onComplete?: () => void;
   autoPlay?: boolean;
 }
 
@@ -19,8 +15,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   lectureId,
   videoUrl,
   title,
-  onProgress, 
-  onComplete,
   autoPlay = false 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -43,7 +37,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const updateDuration = () => setDuration(videoElement.duration);
     const handleEnded = () => {
       setIsPlaying(false);
-      onComplete?.();
     };
     const handleError = () => {
       setVideoError('Failed to load video. Please try again.');
@@ -72,7 +65,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       videoElement.removeEventListener('loadstart', handleLoadStart);
       videoElement.removeEventListener('canplay', handleCanPlay);
     };
-  }, [onComplete]);
+  }, []);
 
   // Load secure video URL
   useEffect(() => {
@@ -99,12 +92,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     loadSecureVideo();
   }, [lectureId, videoUrl]);
 
-  useEffect(() => {
-    if (onProgress && duration > 0) {
-      const progress = (currentTime / duration) * 100;
-      onProgress(progress);
-    }
-  }, [currentTime, duration, onProgress]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -177,11 +164,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-lg">{title || 'Video Lecture'}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="w-full">
         <div className="relative bg-black rounded-lg overflow-hidden">
           {loadingVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black">
@@ -304,17 +287,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
         </div>
-        
-        {/* Video Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 };
 
