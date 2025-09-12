@@ -280,7 +280,7 @@ export function HeroSection() {
                   onEnroll={undefined}
                   compact={true}
                   isEnrolled={isEnroll}
-                  onContinue={() => window.location.href = `/learn/${course._id}`}
+                  onContinue={() => window.location.href = `/courses/${course._id}/learn`}
                 />
               )})}
             </div>
