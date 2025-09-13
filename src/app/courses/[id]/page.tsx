@@ -148,11 +148,11 @@ export default function CourseDetailPage() {
             {/* Course Info */}
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                {course.categories.map((category) => (
+                {course.categories?.map((category) => (
                   <Badge key={category} variant="secondary">
                     {category}
                   </Badge>
-                ))}
+                )) || null}
                 <Badge variant="outline" className="capitalize">
                   {course.level}
                 </Badge>
@@ -205,7 +205,7 @@ export default function CourseDetailPage() {
           <Separator />
 
           {/* What You'll Learn */}
-          {course.whatYouWillLearn.length > 0 && (
+          {course?.whatYouWillLearn && Array.isArray(course.whatYouWillLearn) && course.whatYouWillLearn.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">What you'll learn</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -234,7 +234,7 @@ export default function CourseDetailPage() {
           <Separator />
 
           {/* Requirements */}
-          {course.requirements.length > 0 && (
+          {course?.requirements && Array.isArray(course.requirements) && course.requirements.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold">Requirements</h2>
               <ul className="space-y-2">

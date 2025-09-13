@@ -1,35 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, AlertCircle } from 'lucide-react';
-import secureVideoService from '@/services/secureVideoService';
-
-interface Video {
-  title: string;
-  videoUrl: string;
-  videoKey: string;
-  duration: number;
-  order: number;
-  uploadedAt: string;
-}
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, AlertCircle, Settings, Download, Share2 } from 'lucide-react';
+import { Card, CardContent } from '../ui/card';
 
 interface VideoPlayerProps {
-  video: Video;
-  courseId?: string;
-  videoIndex?: number;
-  onVideoEnd?: () => void;
-  onProgress?: (progress: number) => void;
+  lectureId: string;
+  videoUrl: string;
+  title?: string;
   autoPlay?: boolean;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
-  video, 
-  courseId,
-  videoIndex,
-  onVideoEnd, 
-  onProgress, 
+  lectureId,
+  videoUrl,
+  title,
   autoPlay = false 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -42,6 +27,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [secureVideoUrl, setSecureVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [loadingVideo, setLoadingVideo] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [quality, setQuality] = useState('auto');
+  const [isBuffering, setIsBuffering] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,7 +41,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const updateDuration = () => setDuration(videoElement.duration);
     const handleEnded = () => {
       setIsPlaying(false);
-      onVideoEnd?.();
     };
     const handleError = () => {
       setVideoError('Failed to load video. Please try again.');
@@ -65,6 +53,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const handleCanPlay = () => {
       setLoadingVideo(false);
     };
+    const handleWaiting = () => {
+      setIsBuffering(true);
+    };
+    const handlePlaying = () => {
+      setIsBuffering(false);
+    };
 
     videoElement.addEventListener('timeupdate', updateTime);
     videoElement.addEventListener('loadedmetadata', updateDuration);
@@ -72,6 +66,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     videoElement.addEventListener('error', handleError);
     videoElement.addEventListener('loadstart', handleLoadStart);
     videoElement.addEventListener('canplay', handleCanPlay);
+    videoElement.addEventListener('waiting', handleWaiting);
+    videoElement.addEventListener('playing', handlePlaying);
 
     return () => {
       videoElement.removeEventListener('timeupdate', updateTime);
@@ -80,46 +76,72 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       videoElement.removeEventListener('error', handleError);
       videoElement.removeEventListener('loadstart', handleLoadStart);
       videoElement.removeEventListener('canplay', handleCanPlay);
+      videoElement.removeEventListener('waiting', handleWaiting);
+      videoElement.removeEventListener('playing', handlePlaying);
     };
-  }, [onVideoEnd]);
+  }, []);
 
   // Load secure video URL
   useEffect(() => {
     const loadSecureVideo = async () => {
-      if (courseId && videoIndex !== undefined) {
-        try {
-          setLoadingVideo(true);
-          setVideoError(null);
-          const secureUrl = await secureVideoService.createSecureVideoUrl(courseId, videoIndex);
-          setSecureVideoUrl(secureUrl);
-        } catch (error) {
-          console.error('Failed to load secure video:', error);
-          setVideoError('Failed to load secure video. Trying fallback...');
-          // Fallback to original URL
-          setSecureVideoUrl(video.videoUrl);
+      try {
+        setLoadingVideo(true);
+        setVideoError(null);
+        
+        // Use the secure video URL directly if it's already a signed URL
+        if (videoUrl && videoUrl.includes('amazonaws.com') && videoUrl.includes('X-Amz-Signature')) {
+          setSecureVideoUrl(videoUrl);
+          return;
         }
-      } else {
-        // Use original URL if no secure streaming is needed
-        setSecureVideoUrl(video.videoUrl);
+        
+        // For non-secure URLs, use the original URL as fallback
+        setSecureVideoUrl(videoUrl);
+      } catch (error) {
+        console.error('Failed to load video:', error);
+        setVideoError('Failed to load video. Please try again.');
+        setSecureVideoUrl(videoUrl);
       }
     };
 
     loadSecureVideo();
+  }, [lectureId, videoUrl]);
 
-    // Cleanup function to revoke blob URLs
-    return () => {
-      if (secureVideoUrl && secureVideoUrl.startsWith('blob:')) {
-        secureVideoService.revokeVideoUrl(secureVideoUrl);
+  // Anti-piracy measures
+  useEffect(() => {
+    const disableDevTools = (e: KeyboardEvent) => {
+      // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+      if (e.key === 'F12' || 
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+          (e.ctrlKey && e.key === 'u')) {
+        e.preventDefault();
+        toast({
+          title: "Action Blocked",
+          description: "Developer tools are disabled for content protection",
+          variant: "destructive"
+        });
       }
     };
-  }, [courseId, videoIndex, video.videoUrl]);
 
-  useEffect(() => {
-    if (onProgress && duration > 0) {
-      const progress = (currentTime / duration) * 100;
-      onProgress(progress);
-    }
-  }, [currentTime, duration, onProgress]);
+    const disablePrintScreen = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        toast({
+          title: "Screenshot Blocked",
+          description: "Screenshots are not allowed",
+          variant: "destructive"
+        });
+      }
+    };
+
+    document.addEventListener('keydown', disableDevTools);
+    document.addEventListener('keydown', disablePrintScreen);
+    
+    return () => {
+      document.removeEventListener('keydown', disableDevTools);
+      document.removeEventListener('keydown', disablePrintScreen);
+    };
+  }, [toast]);
+
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -183,6 +205,46 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     video.currentTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
   };
 
+  const changePlaybackRate = (rate: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.playbackRate = rate;
+    setPlaybackRate(rate);
+    setShowSettings(false);
+    toast({
+      title: "Playback Speed",
+      description: `Speed set to ${rate}x`
+    });
+  };
+
+  const preventRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Action Blocked",
+      description: "Right-click is disabled for content protection",
+      variant: "destructive"
+    });
+  };
+
+  const preventDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Download Blocked",
+      description: "Video download is not allowed",
+      variant: "destructive"
+    });
+  };
+
+  const preventShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Sharing Blocked",
+      description: "Video sharing is not permitted",
+      variant: "destructive"
+    });
+  };
+
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -192,12 +254,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-lg">{video.title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative bg-black rounded-lg overflow-hidden">
+    <div className="w-full max-w-full">
+        <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
           {loadingVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black">
               <div className="text-white text-center">
@@ -231,34 +289,63 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             autoPlay={autoPlay}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onContextMenu={preventRightClick}
             crossOrigin="anonymous"
             preload="metadata"
+            controlsList="nodownload nofullscreen noremoteplayback"
+            disablePictureInPicture
+            style={{
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
           />
           
+          {/* Anti-piracy overlay */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-4 right-4 text-white/30 text-xs font-mono">
+              {new Date().toISOString()}
+            </div>
+            <div className="absolute bottom-4 left-4 text-white/20 text-xs">
+              Protected Content - {lectureId?.slice(-8)}
+            </div>
+          </div>
+          
+          {isBuffering && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="text-white text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                <p>Buffering...</p>
+              </div>
+            </div>
+          )}
+          
           {/* Video Controls Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-2 sm:p-4">
             {/* Progress Bar */}
-            <div className="mb-3">
+            <div className="mb-2 sm:mb-3">
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={progress}
                 onChange={handleSeek}
-                className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 sm:h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider touch-manipulation"
               />
             </div>
             
             {/* Control Buttons */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => skipTime(-10)}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                  title="Rewind 10s"
                 >
-                  <SkipBack className="h-4 w-4" />
+                  <SkipBack className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
                 <Button
@@ -266,28 +353,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   variant="ghost"
                   onClick={togglePlay}
                   disabled={loadingVideo || !!videoError}
-                  className="text-white hover:bg-white/20 disabled:opacity-50"
+                  className="text-white hover:bg-white/20 disabled:opacity-50 p-1 sm:p-2 min-w-[40px] h-9 sm:h-10"
                 >
-                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  {isPlaying ? <Pause className="h-4 w-4 sm:h-5 sm:w-5" /> : <Play className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
                 
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => skipTime(10)}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                  title="Forward 10s"
                 >
-                  <SkipForward className="h-4 w-4" />
+                  <SkipForward className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 
-                <div className="flex items-center space-x-2 ml-4">
+                <div className="hidden sm:flex items-center space-x-2 ml-2 sm:ml-4">
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={toggleMute}
-                    className="text-white hover:bg-white/20"
+                    className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
                   >
-                    {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    {isMuted ? <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" /> : <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
                   
                   <input
@@ -297,39 +385,94 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     step="0.1"
                     value={isMuted ? 0 : volume}
                     onChange={handleVolumeChange}
-                    className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                    className="w-12 sm:w-16 h-2 sm:h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer touch-manipulation"
                   />
                 </div>
+                
+                {/* Mobile Volume Control */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={toggleMute}
+                  className="sm:hidden text-white hover:bg-white/20 p-1 min-w-[36px] h-8"
+                >
+                  {isMuted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                </Button>
               </div>
               
-              <div className="flex items-center space-x-4">
-                <span className="text-white text-sm">
+              <div className="flex items-center space-x-1 sm:space-x-4 flex-shrink-0">
+                <span className="text-white text-xs sm:text-sm whitespace-nowrap">
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
+                
+                {/* Playback Speed */}
+                <div className="relative hidden sm:block">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                    title="Playback Speed"
+                  >
+                    <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </Button>
+                  
+                  {showSettings && (
+                    <div className="absolute bottom-full right-0 mb-2 bg-black/95 rounded-lg p-3 min-w-[140px] shadow-xl border border-white/10">
+                      <div className="text-white text-xs mb-3 font-medium">Playback Speed</div>
+                      <div className="space-y-1">
+                        {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((rate) => (
+                          <button
+                            key={rate}
+                            onClick={() => changePlaybackRate(rate)}
+                            className={`block w-full text-left px-3 py-2 text-sm rounded-md hover:bg-white/20 transition-colors ${
+                              playbackRate === rate ? 'bg-orange-500/80 text-white font-medium' : 'text-white/90'
+                            }`}
+                          >
+                            {rate}x {rate === 1 ? '(Normal)' : ''}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Blocked Download Button - Hidden on mobile */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={preventDownload}
+                  className="hidden sm:flex text-white/50 cursor-not-allowed p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                  title="Download Disabled"
+                >
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Button>
+                
+                {/* Blocked Share Button - Hidden on mobile */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={preventShare}
+                  className="hidden sm:flex text-white/50 cursor-not-allowed p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                  title="Sharing Disabled"
+                >
+                  <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Button>
                 
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={toggleFullscreen}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 p-1 sm:p-2 min-w-[36px] h-8 sm:h-9"
+                  title="Fullscreen"
                 >
-                  <Maximize className="h-4 w-4" />
+                  <Maximize className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Video Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 };
 

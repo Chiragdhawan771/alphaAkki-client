@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { CourseForm } from "@/components/courses/course-form"
 import { UpdateCourseDto } from "@/types/course"
+import { Course } from "@/services/types"
 import { courseService } from "@/services"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft } from "lucide-react"
@@ -13,7 +14,7 @@ export default function EditCoursePage() {
   const params = useParams()
   const router = useRouter()
   const courseId = params.id as string
-  const [course, setCourse] = useState(null)
+  const [course, setCourse] = useState<Course | null>(null)
   const [loading, setLoading] = useState(true)
   const [updateLoading, setUpdateLoading] = useState(false)
   const { toast } = useToast()

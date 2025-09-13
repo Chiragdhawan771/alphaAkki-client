@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
 import { usePayment } from '@/hooks/usePayment';
+import { CourseReviews } from '@/components/reviews';
 
 interface CourseDetailModalProps {
   course: SimplifiedCourse | null;
@@ -305,11 +306,11 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
             <h3 className="text-lg font-semibold mb-3">Instructor</h3>
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {course.instructor.firstName[0]}{course.instructor.lastName[0]}
+                {course?.instructor?.firstName[0]}{course?.instructor?.lastName[0]}
               </div>
               <div>
-                <p className="font-medium">{course.instructor.firstName} {course.instructor.lastName}</p>
-                <p className="text-sm text-gray-500">{course.instructor.email}</p>
+                <p className="font-medium">{course?.instructor?.firstName} {course?.instructor?.lastName}</p>
+                <p className="text-sm text-gray-500">{course?.instructor?.email}</p>
               </div>
             </div>
           </div>
@@ -358,38 +359,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
 
           {/* Reviews */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Reviews</h3>
-            {reviewsLoading ? (
-              <div className="text-center py-4">Loading reviews...</div>
-            ) : reviews.length > 0 ? (
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <div key={review._id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                          {review.student.firstName[0]}{review.student.lastName[0]}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {review.student.firstName} {review.student.lastName}
-                          </p>
-                          <div className="flex items-center space-x-1">
-                            {renderStars(review.rating)}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-gray-700">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No reviews yet</p>
-            )}
+            <CourseReviews courseId={course._id} courseTitle={course.title} />
           </div>
         </div>
       </DialogContent>

@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Settings, Users, BarChart3, BookOpen } from "lucide-react"
 import { CourseForm } from "@/components/courses/course-form"
-import { SectionManager } from "@/components/courses/section-manager"
 import { CourseStatusManager } from "@/components/courses/course-status-manager"
 import { EnrollmentManager } from "@/components/courses/enrollment-manager"
 import { courseService, enrollmentService } from "@/services"
 import { useToast } from "@/hooks/use-toast"
-import { CreateCourseDto, UpdateCourseDto, CreateSectionDto, UpdateSectionDto } from "@/types/course"
+import { CreateCourseDto, UpdateCourseDto } from "@/types/course"
 
 interface Course {
   id: string
@@ -22,30 +21,7 @@ interface Course {
   enrollmentCount: number
   completionRate?: number
   lastUpdated: string
-  sections: Section[]
   // Add other course properties as needed
-}
-
-interface Section {
-  id: string
-  title: string
-  description?: string
-  order: number
-  isActive: boolean
-  lectures: Lecture[]
-  createdAt: string
-  updatedAt: string
-}
-
-interface Lecture {
-  id: string
-  title: string
-  type: string
-  duration?: number
-  order: number
-  isActive: boolean
-  isFree?: boolean
-  status: 'draft' | 'published' | 'archived'
 }
 
 export default function CourseManagePage() {
@@ -53,7 +29,7 @@ export default function CourseManagePage() {
   const router = useRouter()
   const courseId = params.id as string
   const [course, setCourse] = useState<Course | null>(null)
-  const [enrollments, setEnrollments] = useState([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
   const { toast } = useToast()
@@ -62,7 +38,10 @@ export default function CourseManagePage() {
     try {
       setLoading(true)
       const response = await courseService.getCourse(courseId)
-      setCourse(response.data)
+      setCourse({
+        ...response.data,
+        lastUpdated: response.data.updatedAt || new Date().toISOString()
+      } as unknown as Course)
     } catch (error) {
       toast({
         title: "Error",
@@ -100,60 +79,10 @@ export default function CourseManagePage() {
     }
   }
 
-  const handleSectionCreate = async (data: CreateSectionDto) => {
-    try {
-      await courseService.createSection(courseId, data)
-      toast({
-        title: "Success",
-        description: "Section created successfully"
-      })
-      fetchCourse()
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to create section",
-        variant: "destructive"
-      })
-    }
-  }
-
-  const handleSectionUpdate = async (sectionId: string, data: UpdateSectionDto) => {
-    try {
-      await courseService.updateSection(sectionId, data)
-      toast({
-        title: "Success",
-        description: "Section updated successfully"
-      })
-      fetchCourse()
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update section",
-        variant: "destructive"
-      })
-    }
-  }
-
-  const handleSectionDelete = async (sectionId: string) => {
-    try {
-      await courseService.deleteSection(sectionId)
-      toast({
-        title: "Success",
-        description: "Section deleted successfully"
-      })
-      fetchCourse()
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete section",
-        variant: "destructive"
-      })
-    }
-  }
 
   const handleStatusChange = async (data: { status: 'draft' | 'published' | 'archived' }) => {
     try {
-      await courseService.updateCourseStatus(courseId, data)
+      await courseService.updateCourseStatus(courseId, data.status)
       toast({
         title: "Success",
         description: `Course status changed to ${data.status}`
@@ -284,17 +213,13 @@ export default function CourseManagePage() {
         </TabsContent>
 
         <TabsContent value="content" className="space-y-6">
-          <SectionManager
-            courseId={courseId}
-            sections={course.sections}
-            onSectionCreate={handleSectionCreate}
-            onSectionUpdate={handleSectionUpdate}
-            onSectionDelete={handleSectionDelete}
-            onSectionReorder={async (sections) => {
-              // Handle section reordering
-              console.log("Reorder sections:", sections)
-            }}
-          />
+          <div className="text-center py-12">
+            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Content Management</h3>
+            <p className="text-muted-foreground">
+              Course content management features are being updated. Please use the simplified course interface for now.
+            </p>
+          </div>
         </TabsContent>
 
         <TabsContent value="students" className="space-y-6">

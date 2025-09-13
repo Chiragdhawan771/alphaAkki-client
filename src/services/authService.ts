@@ -186,6 +186,35 @@ class AuthService {
     }
     return null;
   }
+
+  // Forgot password
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    try {
+      const response = await axiosInstance.post('/auth/forgot-password', { email });
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to send reset email');
+      }
+      throw new Error('Failed to send reset email');
+    }
+  }
+
+  // Reset password
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const response = await axiosInstance.post('/auth/reset-password', { 
+        token, 
+        newPassword 
+      });
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to reset password');
+      }
+      throw new Error('Failed to reset password');
+    }
+  }
 }
 
 // Export singleton instance

@@ -37,12 +37,12 @@ export function Header() {
             >
               Home
             </Link>
-            <a
-              href="#"
+            <Link
+              href="/courses/"
               className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200"
             >
               All Courses
-            </a>
+            </Link>
             <Link
               href="/about/"
               className="text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors duration-200"

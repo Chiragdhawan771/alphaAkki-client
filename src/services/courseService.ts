@@ -54,13 +54,17 @@ class CourseService {
     }
   }
 
-  // Get course by ID
+  // Get course by ID (for enrolled users - learning page)
   async getCourse(courseId: string): Promise<ApiResponse<Course>> {
     try {
-      const response = await axiosInstance.get(`/courses/${courseId}`);
+      console.log('Fetching course content from API:', `/simplified-courses/${courseId}/content`);
+      const response = await axiosInstance.get(`/simplified-courses/${courseId}/content`);
+      console.log('API Response:', response.data);
       return response.data;
     } catch (error: unknown) {
+      console.error('API Error:', error);
       if (error instanceof AxiosError) {
+        console.error('Axios Error Details:', error.response?.data);
         throw new Error(error.response?.data?.message || 'Failed to fetch course');
       }
       throw new Error('Failed to fetch course');
@@ -70,7 +74,7 @@ class CourseService {
   // Get course structure (sections and lectures)
   async getCourseStructure(courseId: string): Promise<ApiResponse<CourseStructure>> {
     try {
-      const response = await axiosInstance.get(`/courses/${courseId}/structure`);
+      const response = await axiosInstance.get(`/simplified-courses/${courseId}/content`);
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {

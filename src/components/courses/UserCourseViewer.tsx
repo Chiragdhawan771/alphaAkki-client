@@ -222,7 +222,7 @@ const UserCourseViewer: React.FC = () => {
                   compact={true}
                   isEnrolled={true}
                   onContinue={() =>
-                    (window.location.href = `/courses/${enrollment.course._id}`)
+                    (window.location.href = `/courses/${enrollment.course._id}/learn`)
                   }
                 />
               ))}
@@ -265,7 +265,7 @@ const UserCourseViewer: React.FC = () => {
                     compact={true}
                     isEnrolled={isEnrolled}
                     onContinue={() =>
-                      (window.location.href = `/courses/${course._id}`)
+                      (window.location.href = `/courses/${course._id}/learn`)
                     }
                   />
                   
