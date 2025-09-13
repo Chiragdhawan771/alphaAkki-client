@@ -151,24 +151,9 @@ export default function DashboardPage() {
     setActiveSection(initialTab);
   }, [initialTab]);
 
-  const handleCourseCreated = (courseId: string) => {
-    setActiveSection("courses");
-    setSelectedCourseId(courseId);
-    toast({
-      title: "Success!",
-      description: "Course created successfully. Now add your content!",
-    });
-  };
 
-  const handleEditCourse = (courseId: string) => {
-    setActiveSection("courses");
-    setSelectedCourseId(courseId);
-  };
 
-  const handleBackToCourses = () => {
-    setActiveSection("courses");
-    setSelectedCourseId(null);
-  };
+
 
   const renderContent = () => {
     // Handle course management
@@ -176,7 +161,7 @@ export default function DashboardPage() {
       if (isInstructor) {
         return <SimplifiedCourseManager />;
       } else {
-        return <UserCourseViewer />;
+        // return <UserCourseViewer />;
       }
     }
 
@@ -403,7 +388,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center gap-2 text-xs text-gray-500">
                                 <Clock className="h-3 w-3" />
-                                <span>{course.duration || 'N/A'}</span>
+                                <span>{course.estimatedDuration + " Hours" || 'N/A'}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Star className="h-3 w-3 text-yellow-400 fill-current" />
