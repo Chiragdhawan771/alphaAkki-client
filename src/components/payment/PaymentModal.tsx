@@ -82,7 +82,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-sm line-clamp-2">{course.title}</h3>
               <p className="text-xs text-gray-500 mt-1">
-                by {course.instructor.firstName} {course.instructor.lastName}
+                by {course?.instructor?.firstName} {course?.instructor?.lastName}
               </p>
               <Badge variant={course.type === 'free' ? 'secondary' : 'default'} className="mt-1">
                 {course.type === 'free' ? 'Free' : `₹${course.price}`}

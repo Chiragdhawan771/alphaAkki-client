@@ -6,6 +6,7 @@ export { default as enrollmentService } from './enrollmentService';
 export { default as progressService } from './progressService';
 export { default as streamingService } from './streamingService';
 export { default as simplifiedCourseService } from './simplifiedCourseService';
+export { reviewService } from './reviewService';
 export { default as axiosInstance } from './axiosInterceptor';
 
 // Export all types

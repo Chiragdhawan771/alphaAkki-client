@@ -17,6 +17,8 @@ import { enrollmentService, courseService } from "@/services";
 import SimplifiedCourseManager from "@/components/courses/SimplifiedCourseManager";
 import UserCourseViewer from "@/components/courses/UserCourseViewer";
 import EnrollmentStats from "@/components/dashboard/EnrollmentStats";
+import AdminReviewManager from "@/components/reviews/AdminReviewManager";
+import UserReviewSection from "@/components/reviews/UserReviewSection";
 import {
   BookOpen,
   Plus,
@@ -35,7 +37,8 @@ import {
   Activity,
   Zap,
   Globe,
-  Search
+  Search,
+  MessageSquare
 } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
@@ -64,6 +67,8 @@ export default function DashboardPage() {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BookOpen },
     { id: "courses", label: "My Courses", icon: BookOpen },
+    ...(user?.role === "admin" ? [{ id: "reviews", label: "Review Management", icon: MessageSquare }] : []),
+    ...(!isInstructor ? [{ id: "my-reviews", label: "My Reviews", icon: MessageSquare }] : []),
   ];
 
   // Fetch dashboard data
@@ -163,6 +168,16 @@ export default function DashboardPage() {
       } else {
         // return <UserCourseViewer />;
       }
+    }
+
+    // Handle review management (admin only)
+    if (activeSection === "reviews" && user?.role === "admin") {
+      return <AdminReviewManager />;
+    }
+
+    // Handle user reviews (students only)
+    if (activeSection === "my-reviews" && !isInstructor) {
+      return <UserReviewSection />;
     }
 
     switch (activeSection) {
@@ -435,7 +450,7 @@ export default function DashboardPage() {
         <Header />
 
         {/* Navigation */}
-        {/* <nav className="bg-white border-b">
+        <nav className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
               {menuItems.map((item) => {
@@ -457,7 +472,7 @@ export default function DashboardPage() {
               })}
             </div>
           </div>
-        </nav> */}
+        </nav>
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

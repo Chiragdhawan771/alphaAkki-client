@@ -12,11 +12,14 @@ import {
   Clock,
   Play,
   Menu,
-  X
+  X,
+  Star,
+  MessageSquare
 } from "lucide-react"
 import ShakaVideoPlayer from '@/components/courses/ShakaVideoPlayer';
 import LectureContent from '@/components/courses/LectureContent';
 import AntiPiracyWrapper from '@/components/courses/AntiPiracyWrapper';
+import { CourseReviews } from '@/components/reviews';
 import { courseService, simplifiedCourseService } from '@/services'
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -54,6 +57,7 @@ export default function CourseLearningPage() {
   const [enrollAttempted, setEnrollAttempted] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [filter, setFilter] = useState("")
+  const [showReviews, setShowReviews] = useState(false)
 
   useEffect(() => {
     loadCourseData()
@@ -290,6 +294,15 @@ export default function CourseLearningPage() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowReviews(!showReviews)}
+                  className="flex items-center space-x-1 px-2 sm:px-3 h-8 sm:h-9"
+                >
+                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline text-xs sm:text-sm">Reviews</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="lg:hidden p-2 h-8 w-8 sm:h-9 sm:w-9"
                   aria-label="Toggle course content"
@@ -511,6 +524,28 @@ export default function CourseLearningPage() {
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        {showReviews && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-xl font-semibold text-gray-900">Course Reviews</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReviews(false)}
+                  className="p-2"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+                <CourseReviews courseId={courseId} courseTitle={course?.title || ''} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AntiPiracyWrapper>
   )

@@ -156,7 +156,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             variant={course.type === "free" ? "secondary" : "outline"}
             className="bg-white/90 shadow-md"
           >
-            {[course.instructor.firstName, course.instructor.lastName].join(
+            {[course?.instructor?.firstName, course?.instructor?.lastName].join(
               " "
             )}
           </Badge>
