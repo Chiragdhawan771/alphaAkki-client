@@ -16,8 +16,6 @@ import {
   Star,
   MessageSquare
 } from "lucide-react"
-import ShakaVideoPlayer from '@/components/courses/ShakaVideoPlayer';
-import LectureContent from '@/components/courses/LectureContent';
 import AntiPiracyWrapper from '@/components/courses/AntiPiracyWrapper';
 import { CourseReviews } from '@/components/reviews';
 import { courseService, simplifiedCourseService } from '@/services'
@@ -437,7 +435,7 @@ export default function CourseLearningPage() {
                             lectureId={currentVideo.videoKey}
                             videoUrl={currentVideo.videoUrl}
                             title={currentVideo.title}
-                            autoPlay={false}
+                            autoPlay={true}
                           />
                         ) : (
                           <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">

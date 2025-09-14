@@ -49,12 +49,12 @@ export function Footer() {
                 <h3 className="font-semibold text-lg text-white mb-6">Learning</h3>
                 <ul className="space-y-4">
                   <li>
-                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
+                    <Link href="/courses/" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
                       All Courses
-                    </a>
+                    </Link>
                   </li>
                   {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Free Resources</a></li> */}
-                  <li>
+                  {/* <li>
                     <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
                       Certifications
                     </a>
@@ -63,7 +63,7 @@ export function Footer() {
                     <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
                       Career Paths
                     </a>
-                  </li>
+                  </li> */}
                 </ul>
               </div>
 
@@ -76,11 +76,7 @@ export function Footer() {
                       About Us
                     </Link>
                   </li>
-                  <li>
-                    <a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">
-                      Careers
-                    </a>
-                  </li>
+             
                   {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Press</a></li> */}
                   {/* <li><a href="#" className="text-gray-300 hover:text-orange-400 transition-colors duration-200">Blog</a></li> */}
                   <li>

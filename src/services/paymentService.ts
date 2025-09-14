@@ -182,6 +182,7 @@ class PaymentService {
         theme: {
           color: '#f97316', // Orange theme
         },
+        
         modal: {
           ondismiss: () => {
             onError(new Error('Payment cancelled by user'));

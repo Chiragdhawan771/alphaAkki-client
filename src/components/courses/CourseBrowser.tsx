@@ -14,6 +14,10 @@ import StudentCourseViewer from "./StudentCourseViewer"
 import simplifiedCourseService, { type SimplifiedCourse } from "@/services/simplifiedCourseService"
 import { enrollmentService } from "@/services/enrollmentService"
 import { Header } from "../layout/header"
+import { usePayment } from "@/hooks/usePayment"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import CourseDetailModal from "./CourseDetailModal"
 
 interface CourseBrowserProps {
   userRole?: "admin" | "student"
@@ -23,12 +27,17 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = "student" }) =
   const [courses, setCourses] = useState<SimplifiedCourse[]>([])
   const [enrolledCourses, setEnrolledCourses] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<SimplifiedCourse | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const { toast } = useToast()
+    const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
+    const {user}=useAuth()
+    const router=useRouter()
+  
 
   useEffect(() => {
     loadCourses()
@@ -80,6 +89,20 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = "student" }) =
     loadCourses()
   }
 
+   const handleEnrollInCourse = async (course: SimplifiedCourse) => {
+
+    if(!user){
+      router.push("/login")
+    }
+
+    if (course.type === "free") {
+      console.log("Enrolling in free course");
+      await enrollInFreeCourse(course._id);
+    } else {
+      console.log("Initiating payment for paid course");
+      await initiatePayment(course._id);
+    }
+  };
   const filteredCourses = courses.filter((course) => {
     if (selectedCategory === "all") return true
     return course.category === selectedCategory
@@ -87,9 +110,9 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = "student" }) =
 
   const categories = ["all", ...Array.from(new Set(courses.map((c) => c.category).filter(Boolean)))]
 
-  if (selectedCourse) {
-    return <StudentCourseViewer courseId={selectedCourse} onBack={() => setSelectedCourse(null)} />
-  }
+  // if (selectedCourse) {
+  //   return <StudentCourseViewer courseId={selectedCourse} onBack={() => setSelectedCourse(null)} />
+  // }
 
   return (
     <div>
@@ -196,8 +219,10 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = "student" }) =
                   <CourseCard
                     key={course._id}
                     course={course}
-                    onViewDetails={() => setSelectedCourse(course._id)}
-                    onEnroll={undefined}
+                    onViewDetails={() => {setSelectedCourse(course)
+                      setIsDetailModalOpen(true)
+                    }}
+                    onEnroll={handleEnrollInCourse}
                     onContinue={() => setSelectedCourse(course._id)}
                     isEnrolled={enrolledCourses.has(course._id)}
                     showActions={true}
@@ -242,14 +267,17 @@ const CourseBrowser: React.FC<CourseBrowserProps> = ({ userRole = "student" }) =
               </div>
             )}
 
-            {filteredCourses.length > 0 && totalPages === 1 && (
-              <div className="text-center pt-8">
-                <Button variant="outline" size="lg">
-                  Load More Courses
-                </Button>
-              </div>
-            )}
+       
           </div>
+          <CourseDetailModal
+        course={selectedCourse}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onEnroll={handleEnrollInCourse}
+        isEnrolled={
+      enrolledCourses?.has(selectedCourse?._id) ||false
+        }
+      />
         </div>
       </div>
     </div>
