@@ -167,7 +167,7 @@ const StudentCourseViewer: React.FC<StudentCourseViewerProps> = ({ courseId, onB
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{course.title}</h1>
-          <p className="text-gray-600 mt-1">by {course.instructor.firstName} {course.instructor.lastName}</p>
+          <p className="text-gray-600 mt-1">by {course?.instructor?.firstName} {course?.instructor?.lastName}</p>
         </div>
         {onBack && (
           <Button variant="outline" onClick={onBack}>
@@ -318,7 +318,7 @@ const StudentCourseViewer: React.FC<StudentCourseViewerProps> = ({ courseId, onB
                 </div>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 mr-2 text-gray-500" />
-                  <span>{course.averageRating.toFixed(1)} rating</span>
+                  <span>{course?.averageRating?.toFixed(1) ||0} rating</span>
                 </div>
               </div>
 

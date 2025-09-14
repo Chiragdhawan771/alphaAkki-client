@@ -26,7 +26,7 @@ interface CourseDetailModalProps {
   course: SimplifiedCourse | null;
   isOpen: boolean;
   onClose: () => void;
-  onEnroll?: (courseId: string) => void;
+  onEnroll?: (courseId: SimplifiedCourse) => void;
   isEnrolled: boolean;
 }
 
@@ -211,7 +211,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 {isEnrolled ? (
                   <Button 
                     className="flex-1" 
-                    onClick={() => window.location.href = `/courses/${course._id}`}
+                    onClick={() => window.location.href = `/courses/${course._id}/learn`}
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Continue Learning
@@ -219,7 +219,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 ) : (
                   <Button 
                     className="flex-1" 
-                    onClick={onEnroll ? () => onEnroll(course._id) : handleEnrollClick}
+                    onClick={onEnroll ? () => onEnroll(course) : handleEnrollClick}
                     disabled={paymentState.isProcessing}
                   >
                     {paymentState.isProcessing ? (

@@ -10,7 +10,11 @@ import simplifiedCourseService, {
 } from "@/services/simplifiedCourseService";
 import enrollmentService from "@/services/enrollmentService";
 import { useToast } from "@/hooks/use-toast";
-import { Dashboard } from "@/services";
+import { Course, Dashboard } from "@/services";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { usePayment } from "@/hooks/usePayment";
+import Link from "next/link";
 
 export function HeroSection() {
   const [featuredCourses, setFeaturedCourses] = useState<SimplifiedCourse[]>(
@@ -20,8 +24,11 @@ export function HeroSection() {
   const [detailModalCourse, setDetailModalCourse] =
     useState<SimplifiedCourse | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  
   const [enrolledCourses, setEnrolledCourses] = useState<any>({});
-  const { toast } = useToast();
+  const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
+  const {user}=useAuth()
+  const router=useRouter()
 
   useEffect(() => {
     fetchFeaturedCourses();
@@ -60,10 +67,20 @@ export function HeroSection() {
       setIsDetailModalOpen(true);
     }
   };
+  
+    const handleEnrollInCourse = async (course: SimplifiedCourse) => {
 
-  const handleEnrollInCourse = async (courseId: string) => {
-    // This function is no longer used - CourseCard handles enrollment internally
-    console.log("Enrollment handled by CourseCard for course:", courseId);
+    if(!user){
+      router.push("/login")
+    }
+
+    if (course.type === "free") {
+      console.log("Enrolling in free course");
+      await enrollInFreeCourse(course._id);
+    } else {
+      console.log("Initiating payment for paid course");
+      await initiatePayment(course._id);
+    }
   };
 
   return (
@@ -127,12 +144,6 @@ export function HeroSection() {
                   />
                 </svg>
               </Button>
-              {/* <Button variant="outline" size="lg" className="h-12 sm:h-14 px-6 sm:px-8 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full font-semibold group">
-                <svg className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                Watch Demo
-              </Button> */}
             </div>
 
             {/* Stats */}
@@ -269,20 +280,24 @@ export function HeroSection() {
           ) : featuredCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredCourses.map((course) => {
-                const isEnroll=enrolledCourses?.data?.recentCourses?.some((c:any)=> c.course._id==course._id
-              )
-              console.log(enrolledCourses,"isEnroll",course)
+                const isEnroll = enrolledCourses?.data?.recentCourses?.some(
+                  (c: any) => c.course._id == course._id
+                );
+                console.log(enrolledCourses, "isEnroll", course);
                 return (
-                <CourseCard
-                  key={course._id}
-                  course={course}
-                  onViewDetails={handleViewCourseDetails}
-                  onEnroll={undefined}
-                  compact={true}
-                  isEnrolled={isEnroll}
-                  onContinue={() => window.location.href = `/courses/${course._id}/learn`}
-                />
-              )})}
+                  <CourseCard
+                    key={course._id}
+                    course={course}
+                    onViewDetails={handleViewCourseDetails}
+                    onEnroll={handleEnrollInCourse}
+                    compact={true}
+                    isEnrolled={isEnroll}
+                    onContinue={() =>
+                      (window.location.href = `/courses/${course._id}/learn`)
+                    }
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -298,7 +313,8 @@ export function HeroSection() {
 
           {/* View All Courses Button */}
           {featuredCourses.length > 0 && (
-            <div className="text-center mt-12">
+            <Link href="/courses/">
+            <div className="text-center mt-12" >
               <Button
                 size="lg"
                 variant="outline"
@@ -320,6 +336,7 @@ export function HeroSection() {
                 </svg>
               </Button>
             </div>
+            </Link>
           )}
         </div>
       </div>
@@ -329,8 +346,14 @@ export function HeroSection() {
         course={detailModalCourse}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        onEnroll={undefined}
-        isEnrolled={false}
+        onEnroll={handleEnrollInCourse}
+        isEnrolled={
+          detailModalCourse
+            ? enrolledCourses?.data?.recentCourses?.some((c: any) => {
+                return c.course._id == detailModalCourse._id;
+              })
+            : false
+        }
       />
     </section>
   );
