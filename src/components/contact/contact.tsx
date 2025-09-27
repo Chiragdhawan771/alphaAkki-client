@@ -26,26 +26,26 @@ const contactInfo: ContactInfo[] = [
     icon: "📧",
     title: "Email",
     description: "Send us a message",
-    value: "hello@alphaakki.com",
+    value: "alphaakkicourse@gmail.com",
   },
   {
     icon: "📱",
     title: "Phone",
     description: "Call us directly",
-    value: "+1 (555) 123-4567",
+    value: "+91 7011311405",
   },
-  {
-    icon: "📍",
-    title: "Location",
-    description: "Visit our office",
-    value: "San Francisco, CA",
-  },
-  {
-    icon: "⏰",
-    title: "Response Time",
-    description: "We typically respond within",
-    value: "24 hours",
-  },
+  // {
+  //   icon: "📍",
+  //   title: "Location",
+  //   description: "Visit our office",
+  //   value: "San Francisco, CA",
+  // },
+  // {
+  //   icon: "⏰",
+  //   title: "Response Time",
+  //   description: "We typically respond within",
+  //   value: "24 hours",
+  // },
 ]
 
 const socialLinks: SocialLink[] = [
@@ -79,7 +79,7 @@ export function ContactSection() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <section id="contact" className="bg-gradient-to-br from-gray-50 via-white to-orange-50 py-12 sm:py-16 lg:py-24">
+      <section id="contact" className="bg-gradient-to-br from-gray-50 via-white to-orange-50 py-12 sm:py-16 lg:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           {/* Section Header */}
           <div className="text-center mb-12 sm:mb-16">
@@ -159,14 +159,7 @@ export function ContactSection() {
 
                     <Button className="w-full h-12 bg-orange-600 bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-700 hover:to-red-800 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
                       <span className="drop-shadow-sm">Send Message</span>
-                      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                        />
-                      </svg>
+                   
                     </Button>
                   </form>
                 </div>

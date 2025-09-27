@@ -22,9 +22,9 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <Link className="flex items-center space-x-2 sm:space-x-3" href="/">
-              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
+              {/* <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-sm sm:text-base">A</span>
-              </div>
+              </div> */}
               <span className="font-bold text-lg sm:text-xl text-gray-900">AlphaAkki</span>
             </Link>
           </div>

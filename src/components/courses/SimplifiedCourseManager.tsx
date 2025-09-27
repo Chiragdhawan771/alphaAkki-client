@@ -364,7 +364,7 @@ const SimplifiedCourseManager: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Price ($)</label>
+                  <label className="block text-sm font-medium mb-2">Price (in Rs.)</label>
                   <Input
                     type="number"
                     value={newCourse.price}
@@ -570,7 +570,7 @@ const SimplifiedCourseManager: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Price:</span>
-                    <span className="font-medium">{course.type === "free" ? "Free" : `$${course.price}`}</span>
+                    <span className="font-medium">{course.type === "free" ? "Free" : `Rs.${course.price}`}</span>
                   </div>
                 </div>
 
@@ -727,10 +727,10 @@ const SimplifiedCourseManager: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Price ($)</label>
+                      <label className="block text-sm font-medium mb-2">Price (in Rs.)</label>
                       <Input
                         type="number"
-                        value={editCourseData.price || 0}
+                        value={editCourseData.price || ""}
                         onChange={(e) => setEditCourseData({ ...editCourseData, price: Number(e.target.value) })}
                         placeholder="0"
                         min="0"
@@ -887,7 +887,7 @@ const SimplifiedCourseManager: React.FC = () => {
                           <span className="font-medium">Duration:</span> {selectedCourse.estimatedDuration || 0} hours
                         </div>
                         <div>
-                          <span className="font-medium">Price:</span> ${selectedCourse.price}
+                          <span className="font-medium">Price:</span> Rs.{selectedCourse.price}
                         </div>
                         <div>
                           <span className="font-medium">Type:</span> {selectedCourse.type}

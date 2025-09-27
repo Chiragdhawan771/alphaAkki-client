@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         router.push(redirectTo);
       } else if (!requireAuth && isAuthenticated) {
         // Redirect authenticated users away from auth pages
-        router.push('/dashboard');
+        router.push('/');
       }
     }
   }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);
