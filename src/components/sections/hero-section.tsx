@@ -194,7 +194,7 @@ export function HeroSection() {
               </div>
 
               {/* Floating achievement card */}
-              <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-gray-100 animate-bounce">
+              {/* <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-gray-100 animate-bounce">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
                     <svg
@@ -220,10 +220,10 @@ export function HeroSection() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Floating progress card */}
-              <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-gray-100">
+              {/* <div className="absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold text-sm sm:text-base">
@@ -232,14 +232,14 @@ export function HeroSection() {
                   </div>
                   <div>
                     <div className="text-sm sm:text-base font-bold text-gray-900">
-                      Learning Streak
+                      Learning Streak 
                     </div>
                     <div className="text-xs sm:text-sm text-gray-500">
                       15 days strong! 🔥
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Background decorative elements */}
               <div className="absolute -top-8 -left-8 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-300/30 to-blue-400/30 rounded-2xl transform rotate-12 blur-sm"></div>
