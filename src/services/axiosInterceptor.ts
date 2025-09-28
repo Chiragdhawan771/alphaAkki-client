@@ -34,12 +34,31 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Handle 401 unauthorized errors
     if (error.response?.status === 401) {
-      // Clear stored auth data
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        // Redirect to login page
-        window.location.href = '/login';
+        const requestUrl = error.config?.url || '';
+        const isLoginAttempt = requestUrl.includes('/auth/login');
+        const hasToken = Boolean(localStorage.getItem('access_token'));
+        const pathname = window.location.pathname || '';
+        const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].some((p) => pathname.startsWith(p));
+
+        // Never redirect for login attempts; let UI show inline error
+        if (isLoginAttempt) {
+          return Promise.reject(error);
+        }
+
+        // If already on an auth page, clear tokens silently and don't reload
+        if (isAuthPage) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          return Promise.reject(error);
+        }
+
+        // For expired sessions elsewhere, clear and redirect to login
+        if (hasToken) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
