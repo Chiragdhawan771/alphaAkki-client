@@ -255,7 +255,7 @@ export const ManageCourses: React.FC<ManageCoursesProps> = ({ onCreateCourse, on
                   </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Price ($)</label>
+                  <label className="block text-sm font-medium mb-2">Price (in Rs.)</label>
                   <Input
                     type="number"
                     min="0"

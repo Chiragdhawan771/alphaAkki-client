@@ -114,7 +114,7 @@ export function Footer() {
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-sm">
-              2024 AlphaAkki. All rights reserved. Built with for learners worldwide.
+              2025 AlphaAkki. All rights reserved. Built with for learners worldwide.
             </p>
             <div className="flex items-center space-x-6 text-sm">
               <Link

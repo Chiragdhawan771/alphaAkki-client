@@ -364,16 +364,6 @@ const SimplifiedCourseManager: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Price ($)</label>
-                  <Input
-                    type="number"
-                    value={newCourse.price}
-                    onChange={(e) => setNewCourse({ ...newCourse, price: Number(e.target.value) })}
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium mb-2">Type</label>
                   <Select
                     value={newCourse.type}
@@ -388,14 +378,27 @@ const SimplifiedCourseManager: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                {newCourse.type === "paid" && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Price (₹)</label>
+                    <Input
+                      type="number"
+                      value={newCourse.price || ''}
+                      onChange={(e) => setNewCourse({ ...newCourse, price: Number(e.target.value) || 0 })}
+                      placeholder="Enter price"
+                      min="0"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium mb-2">Duration (hours)</label>
                   <Input
                     type="number"
-                    value={newCourse.estimatedDuration || 0}
-                    onChange={(e) => setNewCourse({ ...newCourse, estimatedDuration: Number(e.target.value) })}
-                    placeholder="0"
+                    value={newCourse.estimatedDuration || ''}
+                    onChange={(e) => setNewCourse({ ...newCourse, estimatedDuration: Number(e.target.value) || 0 })}
+                    placeholder="Est. hours"
                     min="0"
+                    step="0.5"
                   />
                 </div>
               </div>
@@ -570,7 +573,7 @@ const SimplifiedCourseManager: React.FC = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Price:</span>
-                    <span className="font-medium">{course.type === "free" ? "Free" : `$${course.price}`}</span>
+                    <span className="font-medium">{course.type === "free" ? "Free" : `Rs.${course.price}`}</span>
                   </div>
                 </div>
 
@@ -727,16 +730,6 @@ const SimplifiedCourseManager: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Price ($)</label>
-                      <Input
-                        type="number"
-                        value={editCourseData.price || 0}
-                        onChange={(e) => setEditCourseData({ ...editCourseData, price: Number(e.target.value) })}
-                        placeholder="0"
-                        min="0"
-                      />
-                    </div>
-                    <div>
                       <label className="block text-sm font-medium mb-2">Type</label>
                       <Select
                         value={editCourseData.type}
@@ -753,16 +746,29 @@ const SimplifiedCourseManager: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {editCourseData.type === "paid" && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Price (₹)</label>
+                        <Input
+                          type="number"
+                          value={editCourseData.price || ""}
+                          onChange={(e) => setEditCourseData({ ...editCourseData, price: Number(e.target.value) || 0 })}
+                          placeholder="Enter price"
+                          min="0"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium mb-2">Duration (hours)</label>
                       <Input
                         type="number"
-                        value={editCourseData.estimatedDuration || 0}
+                        value={editCourseData.estimatedDuration || ""}
                         onChange={(e) =>
-                          setEditCourseData({ ...editCourseData, estimatedDuration: Number(e.target.value) })
+                          setEditCourseData({ ...editCourseData, estimatedDuration: Number(e.target.value) || 0 })
                         }
-                        placeholder="0"
+                        placeholder="Est. hours"
                         min="0"
+                        step="0.5"
                       />
                     </div>
                   </div>
@@ -887,7 +893,7 @@ const SimplifiedCourseManager: React.FC = () => {
                           <span className="font-medium">Duration:</span> {selectedCourse.estimatedDuration || 0} hours
                         </div>
                         <div>
-                          <span className="font-medium">Price:</span> ${selectedCourse.price}
+                          <span className="font-medium">Price:</span> Rs.{selectedCourse.price}
                         </div>
                         <div>
                           <span className="font-medium">Type:</span> {selectedCourse.type}
@@ -1006,9 +1012,9 @@ const SimplifiedCourseManager: React.FC = () => {
             </DialogHeader>
             <div className="mt-4">
               <VideoPlayer
-                video={selectedCourse.videos[watchingVideoIndex]}
-                courseId={selectedCourse._id}
-                videoIndex={watchingVideoIndex}
+                lectureId={`${selectedCourse._id}_${watchingVideoIndex}`}
+                videoUrl={selectedCourse.videos[watchingVideoIndex].videoUrl}
+                title={selectedCourse.videos[watchingVideoIndex].title}
                 autoPlay={true}
               />
             </div>

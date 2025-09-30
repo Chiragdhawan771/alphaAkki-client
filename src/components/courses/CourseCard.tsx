@@ -46,6 +46,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
@@ -99,13 +100,21 @@ const CourseCard: React.FC<CourseCardProps> = ({
         onMouseLeave={handleMouseLeave}
       >
         {/* Thumbnail Image */}
-        {course.thumbnail ? (
+        {course.thumbnail && course.thumbnail.trim() && !thumbnailError ? (
           <img
             src={course.thumbnail}
             alt={course.title}
             className={`w-full object-cover rounded-t-lg transition-opacity duration-300 ${
               compact ? "h-48" : "h-52"
             } ${showVideo ? "opacity-0" : "opacity-100"}`}
+            onError={(e) => {
+              console.error("Thumbnail failed to load:", course.thumbnail);
+              setThumbnailError(true);
+            }}
+            onLoad={() => {
+              console.log("Thumbnail loaded successfully:", course.thumbnail);
+              setThumbnailError(false);
+            }}
           />
         ) : (
           <div
@@ -118,22 +127,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
 
         {/* Preview Video */}
-        {course.previewVideo && (
+        {course.previewVideo && course.previewVideo.trim() && (
           <video
             ref={videoRef}
             src={course.previewVideo}
             className={`absolute inset-0 w-full object-cover rounded-t-lg transition-opacity duration-300 ${
               compact ? "h-48" : "h-52"
             } ${showVideo ? "opacity-100" : "opacity-0"}`}
-            // muted
+            muted
             loop
             playsInline
             preload="metadata"
+            onError={(e) => {
+              console.error("Preview video failed to load:", course.previewVideo);
+            }}
+            onLoadedData={() => {
+              console.log("Preview video loaded successfully:", course.previewVideo);
+            }}
           />
         )}
 
         {/* Play Icon Overlay */}
-        {course.previewVideo && !showVideo && isHovered && (
+        {course.previewVideo && course.previewVideo.trim() && !showVideo && isHovered && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-t-lg">
             <div className="bg-white/90 rounded-full p-3 shadow-lg">
               <Play className="h-6 w-6 text-gray-800 ml-1" />
