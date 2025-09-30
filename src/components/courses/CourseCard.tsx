@@ -20,11 +20,15 @@ import {
 } from "lucide-react";
 import { SimplifiedCourse } from "@/services/simplifiedCourseService";
 import { usePayment } from "@/hooks/usePayment";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+
+
 
 interface CourseCardProps {
   course: SimplifiedCourse;
   onViewDetails?: (courseId: string) => void;
-  onEnroll?: (courseId: string) => void;
+  onEnroll?: (courseId: SimplifiedCourse) => void;
   onContinue?: (courseId: string) => void;
   isEnrolled?: boolean;
   showActions?: boolean;
@@ -45,6 +49,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
+  const router=useRouter()
+  const {user }=useAuth()
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -82,23 +88,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     }
   };
 
-  const handleEnrollClick = async () => {
-    console.log(
-      "CourseCard handleEnrollClick called for course:",
-      course._id,
-      "type:",
-      course.type
-    );
-    console.log("onEnroll prop:", onEnroll);
-
-    if (course.type === "free") {
-      console.log("Enrolling in free course");
-      await enrollInFreeCourse(course._id);
-    } else {
-      console.log("Initiating payment for paid course");
-      await initiatePayment(course._id);
-    }
-  };
+ 
 
   return (
     <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 rounded-3xl bg-white">
@@ -285,7 +275,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 className="flex-1"
                 size={compact ? "sm" : "default"}
                 onClick={
-                  onEnroll ? () => onEnroll(course._id) : handleEnrollClick
+                  onEnroll ? () => onEnroll(course) : ()=>{}
                 }
                 disabled={paymentState.isProcessing}
               >

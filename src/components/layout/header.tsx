@@ -211,7 +211,7 @@ export function Header() {
                 </Link>
               )}
               <Link
-                href="#tracks"
+                href="/courses/"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
@@ -226,13 +226,13 @@ export function Header() {
                 About
               </Link>
 
-              <a
-                href="#contact"
+              <Link
+                href="/contact/"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-orange-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Contact
-              </a>
+              </Link>
               <div className="pt-2 border-t border-gray-200">
                 {isAuthenticated ? (
                   <div 
