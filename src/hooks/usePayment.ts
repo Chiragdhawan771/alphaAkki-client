@@ -25,7 +25,7 @@ export const usePayment = () => {
         success: false,
       });
 
-      // Create payment order
+
       console.log('usePayment: Creating payment order...');
       
       // Check if user is logged in
