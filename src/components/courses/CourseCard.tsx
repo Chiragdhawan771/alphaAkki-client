@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -50,8 +50,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
-  const router=useRouter()
-  const {user }=useAuth()
+  const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = useMemo(() => user?.role === "admin", [user?.role]);
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -274,7 +275,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 View Details
               </Button>
             )}
-            {isEnrolled ? (
+            {(isEnrolled || isAdmin) ? (
               onContinue && (
                 <Button
                   className="flex-1"
@@ -290,9 +291,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 className="flex-1"
                 size={compact ? "sm" : "default"}
                 onClick={
-                  onEnroll ? () => onEnroll(course) : ()=>{}
+                  onEnroll ? () => onEnroll(course) : () => {}
                 }
-                disabled={paymentState.isProcessing}
+                disabled={paymentState.isProcessing || isAdmin}
               >
                 {paymentState.isProcessing ? (
                   <>

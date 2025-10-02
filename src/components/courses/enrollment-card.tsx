@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Star, Clock, Users, Globe, Award, CheckCircle } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Course } from "@/services/types"
 import { enrollmentService } from "@/services"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface EnrollmentCardProps {
   course: Course
@@ -19,6 +20,8 @@ interface EnrollmentCardProps {
 export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange }: EnrollmentCardProps) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
+  const isAdmin = useMemo(() => user?.role === "admin", [user?.role])
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -27,7 +30,7 @@ export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange 
   }
 
   const handleEnrollment = async () => {
-    if (isEnrolled) return
+    if (isEnrolled || isAdmin) return
 
     try {
       setLoading(true)
@@ -49,6 +52,14 @@ export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange 
         
         onEnrollmentChange?.()
       } else {
+        if (isAdmin) {
+          toast({
+            title: "Admins already have course access",
+            description: "You can continue to the course without enrolling.",
+          })
+          return
+        }
+
         // For paid courses, redirect to payment or show payment modal
         // This would typically integrate with a payment provider like Stripe
         toast({
@@ -185,10 +196,10 @@ export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange 
       </CardContent>
 
       <CardFooter className="pt-4">
-        {isEnrolled ? (
+        {isEnrolled || isAdmin ? (
           <Button className="w-full" size="lg" asChild>
             <a href={`/learn/${course.id}`}>
-              Go to Course
+              Continue Learning
             </a>
           </Button>
         ) : (
@@ -196,7 +207,7 @@ export function EnrollmentCard({ course, isEnrolled = false, onEnrollmentChange 
             className="w-full" 
             size="lg"
             onClick={handleEnrollment}
-            disabled={loading}
+            disabled={loading || isAdmin}
           >
             {loading ? 'Processing...' : (course.type === 'free' ? 'Enroll for Free' : 'Buy Now')}
           </Button>

@@ -58,13 +58,21 @@ class EnrollmentService {
   }
 
   // Check enrollment status for a course
-  async checkEnrollmentStatus(courseId: string): Promise<ApiResponse<{ isEnrolled: boolean; enrollment?: Enrollment }>> {
+  async checkEnrollmentStatus(
+    courseId: string,
+  ): Promise<
+    ApiResponse<{ isEnrolled: boolean; enrollment?: Enrollment }>
+  > {
     try {
-      const response = await axiosInstance.get(`/enrollments/course/${courseId}/check`);
+      const response = await axiosInstance.get(
+        `/enrollments/course/${courseId}/check`,
+      );
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(error.response?.data?.message || 'Failed to check enrollment status');
+        throw new Error(
+          error.response?.data?.message || 'Failed to check enrollment status',
+        );
       }
       throw new Error('Failed to check enrollment status');
     }

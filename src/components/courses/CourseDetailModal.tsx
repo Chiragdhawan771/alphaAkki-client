@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ import {
 import simplifiedCourseService, { SimplifiedCourse } from '@/services/simplifiedCourseService';
 import { usePayment } from '@/hooks/usePayment';
 import { CourseReviews } from '@/components/reviews';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CourseDetailModalProps {
   course: SimplifiedCourse | null;
@@ -54,6 +55,8 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const { toast } = useToast();
   const { paymentState, initiatePayment, enrollInFreeCourse } = usePayment();
+  const { user } = useAuth();
+  const isAdmin = useMemo(() => user?.role === 'admin', [user?.role]);
 
   useEffect(() => {
     if (course && isOpen) {
@@ -208,7 +211,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
 
               {/* Enroll Button */}
               <div className="flex space-x-3">
-                {isEnrolled ? (
+                {(isEnrolled || isAdmin) ? (
                   <Button 
                     className="flex-1" 
                     onClick={() => window.location.href = `/courses/${course._id}/learn`}
@@ -220,7 +223,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                   <Button 
                     className="flex-1" 
                     onClick={onEnroll ? () => onEnroll(course) : handleEnrollClick}
-                    disabled={paymentState.isProcessing}
+                    disabled={paymentState.isProcessing || isAdmin}
                   >
                     {paymentState.isProcessing ? (
                       <>
@@ -241,7 +244,7 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                     )}
                   </Button>
                 )}
-                {isEnrolled && !showReviewForm && (
+                {(isEnrolled || isAdmin) && !showReviewForm && (
                   <Button variant="outline" onClick={() => setShowReviewForm(true)}>
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Write Review
