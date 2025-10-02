@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import VideoPlayer from './VideoPlayer';
+import AntiPiracyWrapper from './AntiPiracyWrapper';
 import simplifiedCourseService, { SimplifiedCourse, Enrollment } from '@/services/simplifiedCourseService';
 
 interface StudentCourseViewerProps {
@@ -229,13 +230,20 @@ const StudentCourseViewer: React.FC<StudentCourseViewerProps> = ({ courseId, onB
 
           {/* Video Player for Enrolled Users */}
           {enrollment && selectedVideoIndex !== null && course.videos?.[selectedVideoIndex] && (
-            <VideoPlayer
-              video={course.videos[selectedVideoIndex]}
+            <AntiPiracyWrapper
+              userId={enrollment.student ?? enrollment._id}
+              userName={enrollment?.user?.name}
+              userEmail={enrollment?.user?.email}
               courseId={course._id}
-              videoIndex={selectedVideoIndex}
-              onProgress={(progress) => handleVideoProgress(selectedVideoIndex, progress)}
-              autoPlay={true}
-            />
+            >
+              <VideoPlayer
+                video={course.videos[selectedVideoIndex]}
+                courseId={course._id}
+                videoIndex={selectedVideoIndex}
+                onProgress={(progress) => handleVideoProgress(selectedVideoIndex, progress)}
+                autoPlay={true}
+              />
+            </AntiPiracyWrapper>
           )}
 
           {/* Course Description */}

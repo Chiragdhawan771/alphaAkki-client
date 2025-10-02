@@ -22,6 +22,7 @@ import { courseService, simplifiedCourseService } from '@/services'
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import VideoPlayer from "@/components/courses/VideoPlayer"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface Video {
   title: string
@@ -48,6 +49,7 @@ export default function CourseLearningPage() {
   const searchParams = useSearchParams()
   const courseId = params.id as string
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const [course, setCourse] = useState<SimplifiedCourse | null>(null)
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null)
@@ -265,7 +267,12 @@ export default function CourseLearningPage() {
   }
 
   return (
-    <AntiPiracyWrapper userId={courseId} courseId={course?._id}>
+    <AntiPiracyWrapper
+      // userId={courseId}
+      // courseId={course?._id}
+      userName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || user?.name}
+      userEmail={user?.email}
+    >
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-0 z-50 shadow-sm">

@@ -10,6 +10,8 @@ import { courseService, enrollmentService, progressService, lectureService } fro
 import { Course, CourseStructure, Lecture } from "@/services/types"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { AntiPiracyWrapper } from "@/components/AntiPiracyWrapper"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function LearnPage() {
   const params = useParams()
@@ -23,6 +25,7 @@ export default function LearnPage() {
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const fetchCourseData = async () => {
     try {
@@ -174,77 +177,84 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-background">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={goBackToCourse}>
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back to Course
-          </Button>
-          <div className="hidden md:block">
-            <h1 className="font-semibold truncate max-w-md">{course.title}</h1>
+    <AntiPiracyWrapper
+      userId={user?._id}
+      courseId={course?._id}
+      userName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || user?.name}
+      userEmail={user?.email}
+    >
+      <div className="h-screen flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={goBackToCourse}>
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Course
+            </Button>
+            <div className="hidden md:block">
+              <h1 className="font-semibold truncate max-w-md">{course.title}</h1>
+            </div>
           </div>
-        </div>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <div className={cn(
-          "transition-all duration-300 ease-in-out",
-          sidebarOpen ? "w-80" : "w-0",
-          "md:relative absolute inset-y-0 left-0 z-10 bg-background"
-        )}>
-          {sidebarOpen && (
-            <CourseSidebar
-              sections={courseStructure.sections}
-              currentLectureId={currentLecture?.id}
-              userProgress={userProgress}
-              onLectureSelect={handleLectureSelect}
-              isEnrolled={isEnrolled}
-            />
-          )}
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto">
-          <div className="p-6 max-w-4xl mx-auto">
-            {currentLecture ? (
-              <LectureContent
-                lecture={currentLecture}
-                courseId={courseId}
-                onProgress={handleProgress}
-                onComplete={handleLectureComplete}
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar */}
+          <div className={cn(
+            "transition-all duration-300 ease-in-out",
+            sidebarOpen ? "w-80" : "w-0",
+            "md:relative absolute inset-y-0 left-0 z-10 bg-background"
+          )}>
+            {sidebarOpen && (
+              <CourseSidebar
+                sections={courseStructure.sections}
+                currentLectureId={currentLecture?.id}
+                userProgress={userProgress}
+                onLectureSelect={handleLectureSelect}
+                isEnrolled={isEnrolled}
               />
-            ) : (
-              <div className="text-center py-12">
-                <h2 className="text-xl font-semibold mb-2">Select a Lecture</h2>
-                <p className="text-muted-foreground">
-                  Choose a lecture from the sidebar to start learning.
-                </p>
-              </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-5"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-    </div>
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto">
+            <div className="p-6 max-w-4xl mx-auto">
+              {currentLecture ? (
+                <LectureContent
+                  lecture={currentLecture}
+                  courseId={courseId}
+                  onProgress={handleProgress}
+                  onComplete={handleLectureComplete}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <h2 className="text-xl font-semibold mb-2">Select a Lecture</h2>
+                  <p className="text-muted-foreground">
+                    Choose a lecture from the sidebar to start learning.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-5"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </div>
+    </AntiPiracyWrapper>
   )
 }

@@ -4,12 +4,16 @@ interface AntiPiracyWrapperProps {
   children: React.ReactNode;
   userId?: string;
   courseId?: string;
+  userName?: string;
+  userEmail?: string;
 }
 
 const AntiPiracyWrapper: React.FC<AntiPiracyWrapperProps> = ({
   children,
-  userId,
-  courseId,
+  // userId,
+  userName,
+  userEmail,
+  // courseId,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -59,22 +63,49 @@ const AntiPiracyWrapper: React.FC<AntiPiracyWrapperProps> = ({
 
     // Add watermark overlay
     const addWatermark = () => {
+      const identityParts = [userName, userEmail].filter(Boolean);
+      const identity = identityParts.length > 0 ? identityParts.join(' • ') : userEmail || userName || 'Learner';
+      const baseText = identity.toUpperCase();
       const wm = document.createElement('div');
       wm.id = 'anti-piracy-watermark';
-      wm.textContent = `${userId ?? 'user'} - ${courseId ?? 'course'} - ${new Date().toISOString()}`;
+      // wm.textContent = `${baseText} • ${courseId ?? 'COURSE'} • ${new Date().toLocaleString()}`;
       wm.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%) rotate(-30deg);
-        font-size: 20px;
+        transform: translate(-50%, -50%) rotate(-28deg);
+        font-size: 22px;
+        letter-spacing: 1px;
         color: rgba(255,255,255,0.12);
+        text-transform: uppercase;
+        pointer-events: none;
+        z-index: 9999;
+        user-select: none;
+        white-space: nowrap;
+      `;
+      document.body.appendChild(wm);
+
+      // Additionally render a secondary watermark anchored to prevent cropping
+      const cornerWatermark = document.createElement('div');
+      cornerWatermark.id = 'anti-piracy-watermark-corner';
+      cornerWatermark.textContent = baseText;
+      cornerWatermark.style.cssText = `
+        position: fixed;
+        bottom: 16px;
+        right: 20px;
+        font-size: 14px;
+        letter-spacing: 0.6px;
+        color: rgba(255,255,255,0.25);
         pointer-events: none;
         z-index: 9999;
         user-select: none;
       `;
-      document.body.appendChild(wm);
-      return () => document.getElementById('anti-piracy-watermark')?.remove();
+      document.body.appendChild(cornerWatermark);
+
+      return () => {
+        document.getElementById('anti-piracy-watermark')?.remove();
+        document.getElementById('anti-piracy-watermark-corner')?.remove();
+      };
     };
 
     // Register listeners
@@ -95,7 +126,7 @@ const AntiPiracyWrapper: React.FC<AntiPiracyWrapperProps> = ({
       document.removeEventListener('visibilitychange', handleVisibility);
       cleanupWatermark();
     };
-  }, [userId, courseId]);
+  }, [userId, userName, userEmail, courseId]);
 
   return (
     <div
