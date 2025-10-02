@@ -10,10 +10,10 @@ interface AntiPiracyWrapperProps {
 
 const AntiPiracyWrapper: React.FC<AntiPiracyWrapperProps> = ({
   children,
-  // userId,
+  userId,
   userName,
   userEmail,
-  // courseId,
+  courseId,
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 

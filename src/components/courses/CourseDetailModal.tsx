@@ -122,7 +122,10 @@ const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
   if (!course) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={()=>{
+      setNewReview({ rating: 5, comment: '' });
+      setShowReviewForm(false)
+      onClose()}}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">{course.title}</DialogTitle>

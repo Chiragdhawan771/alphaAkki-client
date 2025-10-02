@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -6,19 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Header } from "@/components/layout/header"
 import Link from "next/link"
 
-
 interface ContactInfo {
   icon: string
   title: string
   description: string
   value: string
-}
-
-interface SocialLink {
-  platform: string
-  icon: string
-  url: string
-  followers: string
 }
 
 const contactInfo: ContactInfo[] = [
@@ -34,48 +29,30 @@ const contactInfo: ContactInfo[] = [
     description: "Call us directly",
     value: "+91 7011311405",
   },
-  // {
-  //   icon: "📍",
-  //   title: "Location",
-  //   description: "Visit our office",
-  //   value: "San Francisco, CA",
-  // },
-  // {
-  //   icon: "⏰",
-  //   title: "Response Time",
-  //   description: "We typically respond within",
-  //   value: "24 hours",
-  // },
-]
-
-const socialLinks: SocialLink[] = [
-  {
-    platform: "YouTube",
-    icon: "🎥",
-    url: "youtube.com/alphaakki",
-    followers: "300K+",
-  },
-  {
-    platform: "Instagram",
-    icon: "📸",
-    url: "instagram.com/alphaakki",
-    followers: "150K+",
-  },
-  {
-    platform: "Twitter",
-    icon: "🐦",
-    url: "twitter.com/alphaakki",
-    followers: "75K+",
-  },
-  {
-    platform: "LinkedIn",
-    icon: "💼",
-    url: "linkedin.com/in/alphaakki",
-    followers: "50K+",
-  },
 ]
 
 export function ContactSection() {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleMailto = (e: React.FormEvent) => {
+    e.preventDefault()
+    const { firstName, lastName, email, subject, message } = formData
+    const mailtoLink = `mailto:alphaakkicourse@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+      `Name: ${firstName} ${lastName}\nEmail: ${email}\n\n${message}`
+    )}`
+    window.location.href = mailtoLink
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -113,11 +90,14 @@ export function ContactSection() {
                     </div>
                   </div>
 
-                  <form className="space-y-6">
+                  <form className="space-y-6" onSubmit={handleMailto}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                         <Input
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
                           placeholder="Your first name"
                           className="rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                         />
@@ -125,6 +105,9 @@ export function ContactSection() {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                         <Input
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
                           placeholder="Your last name"
                           className="rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                         />
@@ -135,6 +118,9 @@ export function ContactSection() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                       <Input
                         type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
                         placeholder="your.email@example.com"
                         className="rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                       />
@@ -143,6 +129,9 @@ export function ContactSection() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
                       <Input
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
                         placeholder="What's this about?"
                         className="rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                       />
@@ -151,15 +140,20 @@ export function ContactSection() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                       <Textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
                         placeholder="Tell us more about your inquiry..."
                         rows={5}
                         className="rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500 resize-none"
                       />
                     </div>
 
-                    <Button className="w-full h-12 bg-orange-600 bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-700 hover:to-red-800 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-orange-600 bg-gradient-to-r from-orange-600 to-red-700 hover:from-orange-700 hover:to-red-800 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
                       <span className="drop-shadow-sm">Send Message</span>
-                   
                     </Button>
                   </form>
                 </div>
@@ -168,7 +162,7 @@ export function ContactSection() {
 
             {/* Contact Information */}
             <div className="space-y-6">
-              {contactInfo.map((info: ContactInfo, index: number) => (
+              {contactInfo.map((info, index) => (
                 <Card
                   key={index}
                   className="group hover:shadow-xl transition-all duration-500 border-0 shadow-lg rounded-2xl bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50"
@@ -192,30 +186,6 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Social Media Links */}
-          {/* <div className="mb-16">
-            <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Connect With Us</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {socialLinks.map((social: SocialLink, index: number) => (
-                <Card
-                  key={index}
-                  className="group hover:shadow-xl transition-all duration-500 border-0 shadow-lg rounded-2xl bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 cursor-pointer"
-                >
-                  <CardContent className="p-6 text-center">
-                    <div className="h-12 w-12 rounded-xl bg-orange-600 bg-gradient-to-r from-orange-600 to-red-700 flex items-center justify-center shadow-lg mx-auto mb-3">
-                      <span className="text-xl">{social.icon}</span>
-                    </div>
-                    <h4 className="font-bold text-gray-900 group-hover:bg-gradient-to-r group-hover:from-orange-500 group-hover:to-red-500 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
-                      {social.platform}
-                    </h4>
-                    <p className="text-sm text-gray-600 mt-1">{social.followers}</p>
-                    <p className="text-xs text-gray-500 mt-1">{social.url}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div> */}
-
           {/* Call to Action */}
           <div className="text-center">
             <Card className="bg-orange-600 bg-gradient-to-r from-orange-600 to-red-700 border-0 shadow-2xl rounded-3xl overflow-hidden max-w-4xl mx-auto">
@@ -229,13 +199,13 @@ export function ContactSection() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/">
-                  <Button
-                    size="lg"
-                    className="h-12 px-8 bg-white text-orange-600 hover:bg-gray-100 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    Browse Courses
-                  </Button>
-  </Link>
+                    <Button
+                      size="lg"
+                      className="h-12 px-8 bg-white text-orange-600 hover:bg-gray-100 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      Browse Courses
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
