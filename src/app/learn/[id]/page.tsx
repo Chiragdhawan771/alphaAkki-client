@@ -10,8 +10,10 @@ import { courseService, enrollmentService, progressService, lectureService } fro
 import { Course, CourseStructure, Lecture } from "@/services/types"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { AntiPiracyWrapper } from "@/components/AntiPiracyWrapper"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/contexts/AuthContext"
+import AntiPiracyWrapper from "@/components/courses/AntiPiracyWrapper"
+// import { AntiPiracyWrapper } from "@/components/AntiPiracyWrapper"
+// import { useAuth } from "@/hooks/use-auth"
 
 export default function LearnPage() {
   const params = useParams()
