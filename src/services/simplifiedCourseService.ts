@@ -91,7 +91,7 @@ class SimplifiedCourseService {
   async createCourse(courseData: CreateCourseData) {
     try {
       const response = await axiosInstance.post('/simplified-courses', courseData);
-      return response.data;
+      return response.data as { video: { title: string; videoUrl: string; videoKey: string; duration: number; order: number; uploadedAt: string } };
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to create course');
@@ -104,7 +104,7 @@ class SimplifiedCourseService {
   async getInstructorCourses() {
     try {
       const response = await axiosInstance.get('/simplified-courses/my-courses');
-      return response.data;
+      return response.data as { video: { title: string; videoUrl: string; videoKey: string; duration: number; order: number; uploadedAt: string } };
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to fetch courses');

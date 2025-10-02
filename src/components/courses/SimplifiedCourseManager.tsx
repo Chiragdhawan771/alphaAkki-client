@@ -8,7 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { Edit, Eye, Plus, Play, Trash2, Upload, Users, Video, ImageIcon } from "lucide-react"
+import {
+  Edit,
+  Eye,
+  Plus,
+  Play,
+  Trash2,
+  Upload,
+  Users,
+  Video,
+  ImageIcon,
+  Clock,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -65,29 +78,46 @@ const SimplifiedCourseManager: React.FC = () => {
   })
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
+  const [videoSize, setVideoSize] = useState<string | null>(null)
+  const [videoError, setVideoError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDurationDetecting, setIsDurationDetecting] = useState(false)
+  const [safeDuration, setSafeDuration] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     if (!videoFile) {
-      if (newVideo.autoDetectDuration && newVideo.duration !== undefined) {
+      setVideoPreviewUrl(null)
+      setVideoSize(null)
+      setVideoError(null)
+      setSafeDuration(undefined)
+      if (newVideo.autoDetectDuration) {
         setNewVideo((prev) => ({ ...prev, duration: undefined }))
       }
       return
     }
+
+    setVideoError(null)
+    setVideoPreviewUrl(URL.createObjectURL(videoFile))
+    const sizeInMb = videoFile.size / (1024 * 1024)
+    setVideoSize(`${sizeInMb.toFixed(sizeInMb > 10 ? 1 : 2)} MB`)
 
     if (!newVideo.autoDetectDuration) {
       return
     }
 
     let isCancelled = false
-    const objectUrl = URL.createObjectURL(videoFile)
+    setIsDurationDetecting(true)
+
     const tempVideo = document.createElement("video")
     tempVideo.preload = "metadata"
-    tempVideo.src = objectUrl
+    tempVideo.src = URL.createObjectURL(videoFile)
 
     const cleanup = () => {
       tempVideo.removeAttribute("src")
       tempVideo.load()
-      URL.revokeObjectURL(objectUrl)
+      URL.revokeObjectURL(tempVideo.src)
+      setIsDurationDetecting(false)
     }
 
     tempVideo.onloadedmetadata = () => {
@@ -97,30 +127,34 @@ const SimplifiedCourseManager: React.FC = () => {
       }
 
       const detectedDuration = Math.round(tempVideo.duration || 0)
-      setNewVideo((prev) => ({
-        ...prev,
-        duration: Number.isFinite(detectedDuration) && detectedDuration > 0 ? detectedDuration : undefined,
-      }))
+      if (Number.isFinite(detectedDuration) && detectedDuration > 0) {
+        setSafeDuration(detectedDuration)
+        setNewVideo((prev) => ({
+          ...prev,
+          duration: detectedDuration,
+        }))
+      } else {
+        setVideoError("Unable to detect duration automatically. Please enter it manually.")
+        setSafeDuration(undefined)
+        setNewVideo((prev) => ({ ...prev, duration: undefined }))
+      }
       cleanup()
     }
 
     tempVideo.onerror = () => {
-      cleanup()
       if (!isCancelled) {
-        toast({
-          title: "Duration Detection Failed",
-          description: "We couldn't detect the video length automatically. Please enter it manually.",
-          variant: "destructive",
-        })
-        setNewVideo((prev) => ({ ...prev, autoDetectDuration: false, duration: prev.duration ?? 0 }))
+        setVideoError("We couldn't read this file. Please try a different video.")
+        setSafeDuration(undefined)
+        setNewVideo((prev) => ({ ...prev, duration: undefined, autoDetectDuration: false }))
       }
+      cleanup()
     }
 
     return () => {
       isCancelled = true
       cleanup()
     }
-  }, [videoFile, newVideo.autoDetectDuration, toast])
+  }, [videoFile, newVideo.autoDetectDuration])
 
   const handleThumbnailUpload = (file: File | null, url: string) => {
     if (isEditingCourse) {
@@ -240,49 +274,96 @@ const SimplifiedCourseManager: React.FC = () => {
   }
 
   const handleAddVideo = async () => {
-    if (!newVideo.title.trim() || !videoFile) {
+    if (!newVideo.title.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Please provide video title and select a video file",
+        title: "Title Required",
+        description: "Please enter a title for this lecture before uploading.",
         variant: "destructive",
       })
       return
     }
 
-    if (newVideo.duration === undefined || Number.isNaN(newVideo.duration) || newVideo.duration <= 0) {
-      if (!newVideo.autoDetectDuration) {
-        toast({
-          title: "Duration Required",
-          description: "We couldn't determine the video duration. Please enter it manually.",
-          variant: "destructive",
-        })
-        return
-      }
+    if (!videoFile) {
+      toast({
+        title: "Video Required",
+        description: "Select a video file to upload before continuing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const durationValid = newVideo.duration !== undefined && !Number.isNaN(newVideo.duration) && newVideo.duration > 0
+
+    if (!durationValid) {
+      toast({
+        title: "Duration Needed",
+        description: newVideo.autoDetectDuration
+          ? "Please wait while we detect the duration or switch off auto-detect to enter it manually."
+          : "Enter the video duration in seconds before uploading.",
+        variant: "destructive",
+      })
+      return
     }
 
     if (!showAddVideo) return
 
     try {
+      setIsUploading(true)
       setUploadProgress(0)
-      const updatedCourse = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile)
+      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile)
+      const uploadedVideo = uploadResult?.video
 
-      setCourses(courses.map((course) => (course._id === showAddVideo ? updatedCourse : course)))
+      if (!uploadedVideo) {
+        throw new Error("Video upload succeeded but no video details were returned")
+      }
+
+      const mergedVideo = {
+        ...uploadedVideo,
+        duration: newVideo.duration ?? uploadedVideo.duration,
+        title: newVideo.title || uploadedVideo.title,
+      }
+
+      setCourses((prev) =>
+        prev.map((course) => {
+          if (course._id !== showAddVideo) return course
+          const videos = course.videos ? [...course.videos, mergedVideo] : [mergedVideo]
+          return {
+            ...course,
+            videos,
+          }
+        })
+      )
+
+      setSelectedCourse((prev) =>
+        prev && prev._id === showAddVideo
+          ? {
+              ...prev,
+              videos: prev.videos ? [...prev.videos, mergedVideo] : [mergedVideo],
+            }
+          : prev
+      )
 
       setNewVideo({ title: "", duration: undefined, autoDetectDuration: true })
       setVideoFile(null)
+      setVideoPreviewUrl(null)
+      setVideoSize(null)
+      setVideoError(null)
+      setSafeDuration(undefined)
       setShowAddVideo(null)
       setUploadProgress(0)
 
       toast({
-        title: "Success!",
-        description: "Video uploaded successfully",
+        title: "Lecture Added",
+        description: "The video lecture has been uploaded successfully.",
       })
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload video",
+        title: "Upload Failed",
+        description: error.message || "Something went wrong while uploading the video.",
         variant: "destructive",
       })
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -410,6 +491,32 @@ const SimplifiedCourseManager: React.FC = () => {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
     )
+  }
+
+  const renderDurationDisplay = () => {
+    if (!newVideo.autoDetectDuration) {
+      return newVideo.duration ? formatSeconds(newVideo.duration) : "Manual entry"
+    }
+    if (isDurationDetecting) {
+      return "Detecting..."
+    }
+    if (safeDuration) {
+      return formatSeconds(safeDuration)
+    }
+    return "Not detected"
+  }
+
+  const formatSeconds = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    if (hrs > 0) {
+      return `${hrs}h ${mins}m ${secs}s`
+    }
+    if (mins > 0) {
+      return `${mins}m ${secs}s`
+    }
+    return `${secs}s`
   }
 
   return (
@@ -698,90 +805,185 @@ const SimplifiedCourseManager: React.FC = () => {
                         Add Video
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add Video to {course.title}</DialogTitle>
-                        <DialogDescription>Upload a new video to this course</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Video Title</label>
-                          <Input
-                            value={newVideo.title}
-                            onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
-                            placeholder="Enter video title"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Duration</label>
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-1">
+                    <DialogContent className="sm:max-w-3xl p-0 overflow-hidden">
+                      <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1 px-6 py-6">
+                        <DialogHeader className="space-y-2">
+                          <DialogTitle className="text-lg">Add Lecture Video</DialogTitle>
+                          <DialogDescription>
+                            Provide the lecture details and upload the lesson video for <span className="font-medium text-foreground">{course.title}</span>.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+                          <div className="space-y-5">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium">Video Title</label>
                               <Input
-                                type="number"
-                                value={newVideo.duration ?? ""}
-                                onChange={(e) => {
-                                  const value = e.target.value
-                                  setNewVideo((prev) => ({
-                                    ...prev,
-                                    duration: value === "" ? undefined : Number(value),
-                                  }))
-                                }}
-                                placeholder={newVideo.autoDetectDuration ? "Detecting..." : "Enter duration in seconds"}
-                                min="0"
-                                className="flex-1"
-                                disabled={newVideo.autoDetectDuration}
+                                value={newVideo.title}
+                                onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                                placeholder="Intro to React Hooks"
                               />
-                              <p className="text-xs text-gray-500 mt-1">
-                                {newVideo.autoDetectDuration
-                                  ? newVideo.duration
-                                    ? `Detected duration: ${newVideo.duration} seconds`
-                                    : videoFile
-                                      ? "Detecting video duration..."
-                                      : "Select a video file to detect duration"
-                                  : "Enter the duration manually if auto-detect is disabled."}
-                              </p>
+                              <p className="text-xs text-muted-foreground">Students will see this title in the course outline.</p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <input
-                                id="auto-detect-duration"
-                                type="checkbox"
-                                checked={newVideo.autoDetectDuration ?? false}
-                                onChange={(e) =>
-                                  setNewVideo((prev) => ({
-                                    ...prev,
-                                    autoDetectDuration: e.target.checked,
-                                    duration: e.target.checked ? undefined : prev.duration,
-                                  }))
-                                }
-                                className="h-4 w-4"
+
+                            <div className="grid gap-4">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-sm font-medium">Duration</label>
+                                  {safeDuration && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      Detected {formatSeconds(safeDuration)}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="relative">
+                                  <Input
+                                    type="number"
+                                    value={newVideo.duration ?? ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value
+                                      setNewVideo((prev) => ({
+                                        ...prev,
+                                        duration: value === "" ? undefined : Number(value),
+                                      }))
+                                    }}
+                                    placeholder={newVideo.autoDetectDuration ? "Detecting..." : "Enter seconds"}
+                                    min="0"
+                                    className="pr-24"
+                                    disabled={newVideo.autoDetectDuration}
+                                  />
+                                  <span className="absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground">
+                                    {formatSeconds(newVideo.duration || 0)}
+                                  </span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                  <label className="inline-flex items-center space-x-2">
+                                    <input
+                                      id="auto-detect-duration"
+                                      type="checkbox"
+                                      checked={newVideo.autoDetectDuration ?? false}
+                                      onChange={(e) =>
+                                        setNewVideo((prev) => ({
+                                          ...prev,
+                                          autoDetectDuration: e.target.checked,
+                                          duration: e.target.checked ? safeDuration : prev.duration,
+                                        }))
+                                      }
+                                      className="h-4 w-4"
+                                    />
+                                    <span>Auto-detect duration</span>
+                                  </label>
+                                  <span>{newVideo.autoDetectDuration ? (isDurationDetecting ? "Reading video…" : "We will use the detected length") : "Enter the duration manually"}</span>
+                                </div>
+                                {videoError && <p className="text-xs text-red-500">{videoError}</p>}
+                              </div>
+
+                              {uploadProgress > 0 && (
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Uploading</span>
+                                    <span>{uploadProgress}%</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${uploadProgress}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="border-2 border-dashed rounded-xl bg-muted/20 p-4">
+                              <Input
+                                id="video-upload"
+                                type="file"
+                                accept="video/*"
+                                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                                className="hidden"
                               />
-                              <label htmlFor="auto-detect-duration" className="text-sm text-gray-600">
-                                Auto-detect
+                              <label
+                                htmlFor="video-upload"
+                                className="flex flex-col items-center justify-center text-center gap-2 py-6 cursor-pointer rounded-lg border border-dashed hover:border-orange-500 hover:text-orange-500 transition-colors"
+                              >
+                                <Upload className="h-5 w-5" />
+                                <div className="space-y-1">
+                                  <p className="text-sm font-medium">
+                                    {videoFile ? "Replace selected video" : "Drag & drop or click to upload"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    MP4 / MOV / WEBM • up to 2GB
+                                  </p>
+                                </div>
                               </label>
+
+                              {videoFile && (
+                                <div className="mt-4 space-y-3 rounded-lg border bg-background p-3">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium truncate" title={videoFile.name}>
+                                      {videoFile.name}
+                                    </span>
+                                    <Badge variant="outline">{videoSize}</Badge>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    <span>{renderDurationDisplay()}</span>
+                                  </div>
+                                  {videoPreviewUrl && (
+                                    <video
+                                      className="w-full rounded-lg border aspect-video max-h-48 object-cover"
+                                      src={videoPreviewUrl}
+                                      controls
+                                      preload="metadata"
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground space-y-2">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-orange-500" />
+                                High-quality uploads help students stay engaged. Aim for 1080p MP4 when possible.
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-orange-500" />
+                                Duration is required for accurate progress tracking and learner expectations.
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Video File</label>
-                          <Input
-                            type="file"
-                            accept="video/*"
-                            onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
-                          />
-                        </div>
-                        {uploadProgress > 0 && (
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${uploadProgress}%` }}
-                            ></div>
-                          </div>
-                        )}
-                        <div className="flex justify-end space-x-2">
-                          <Button variant="outline" onClick={() => setShowAddVideo(null)}>
+
+                        <div className="flex flex-col sm:flex-row sm:justify-end sm:space-x-2 space-y-2 sm:space-y-0">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddVideo(null)
+                              setVideoFile(null)
+                              setVideoPreviewUrl(null)
+                              setVideoSize(null)
+                              setVideoError(null)
+                              setNewVideo({ title: "", duration: undefined, autoDetectDuration: true })
+                            }}
+                            disabled={isUploading}
+                          >
                             Cancel
                           </Button>
-                          <Button onClick={handleAddVideo}>Upload Video</Button>
+                          <Button onClick={handleAddVideo} disabled={isUploading}>
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload Video
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </DialogContent>

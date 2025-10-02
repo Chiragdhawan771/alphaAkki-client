@@ -395,10 +395,10 @@ export default function CourseLearningPage() {
                         )}>
                           <span className="line-clamp-2">{index + 1}. {video.title}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        {/* <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                           <Clock className="h-3 w-3 flex-shrink-0" />
                           <span className="truncate">{video.duration ? `${Math.ceil(video.duration / 60)} min` : 'Duration N/A'}</span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   ))}
@@ -417,13 +417,13 @@ export default function CourseLearningPage() {
                         <div className="flex-1 min-w-0">
                           <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2 leading-tight">{currentVideo.title}</h2>
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-gray-600">
-                            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">Video Lecture</Badge>
+                            {/* <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">Video Lecture</Badge>
                             {currentVideo.duration && (
                               <div className="flex items-center space-x-2 bg-gray-100 px-2 sm:px-3 py-1 rounded-full">
                                 <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                                 <span className="font-medium text-xs sm:text-sm">{Math.ceil(currentVideo.duration / 60)} minutes</span>
                               </div>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>
