@@ -83,6 +83,7 @@ export interface UpdateCourseData {
 export interface AddVideoData {
   title: string;
   duration?: number;
+  autoDetectDuration?: boolean;
 }
 
 class SimplifiedCourseService {
@@ -157,7 +158,10 @@ class SimplifiedCourseService {
       const formData = new FormData();
       formData.append('video', videoFile);
       formData.append('title', videoData.title);
-      if (videoData.duration) {
+      if (videoData.autoDetectDuration) {
+        formData.append('autoDetectDuration', 'true');
+      }
+      if (videoData.duration !== undefined) {
         formData.append('duration', videoData.duration.toString());
       }
 

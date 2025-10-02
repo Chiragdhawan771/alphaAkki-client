@@ -25,6 +25,7 @@ import simplifiedCourseService, {
 } from "@/services/simplifiedCourseService"
 import VideoPlayer from "./VideoPlayer"
 import { FileUploadDialog } from "./file-upload-dialog"
+import secureVideoService from "@/services/secureVideoService"
 
 const SimplifiedCourseManager: React.FC = () => {
   const [courses, setCourses] = useState<SimplifiedCourse[]>([])
@@ -35,6 +36,9 @@ const SimplifiedCourseManager: React.FC = () => {
   const [isEditingCourse, setIsEditingCourse] = useState(false)
   const [editCourseData, setEditCourseData] = useState<Partial<SimplifiedCourse>>({})
   const [watchingVideoIndex, setWatchingVideoIndex] = useState<number | null>(null)
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
   const { toast } = useToast()
 
   // Course creation form
@@ -56,10 +60,67 @@ const SimplifiedCourseManager: React.FC = () => {
   // Video upload form
   const [newVideo, setNewVideo] = useState<AddVideoData>({
     title: "",
-    duration: 0,
+    duration: undefined,
+    autoDetectDuration: true,
   })
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+
+  useEffect(() => {
+    if (!videoFile) {
+      if (newVideo.autoDetectDuration && newVideo.duration !== undefined) {
+        setNewVideo((prev) => ({ ...prev, duration: undefined }))
+      }
+      return
+    }
+
+    if (!newVideo.autoDetectDuration) {
+      return
+    }
+
+    let isCancelled = false
+    const objectUrl = URL.createObjectURL(videoFile)
+    const tempVideo = document.createElement("video")
+    tempVideo.preload = "metadata"
+    tempVideo.src = objectUrl
+
+    const cleanup = () => {
+      tempVideo.removeAttribute("src")
+      tempVideo.load()
+      URL.revokeObjectURL(objectUrl)
+    }
+
+    tempVideo.onloadedmetadata = () => {
+      if (isCancelled) {
+        cleanup()
+        return
+      }
+
+      const detectedDuration = Math.round(tempVideo.duration || 0)
+      setNewVideo((prev) => ({
+        ...prev,
+        duration: Number.isFinite(detectedDuration) && detectedDuration > 0 ? detectedDuration : undefined,
+      }))
+      cleanup()
+    }
+
+    tempVideo.onerror = () => {
+      cleanup()
+      if (!isCancelled) {
+        toast({
+          title: "Duration Detection Failed",
+          description: "We couldn't detect the video length automatically. Please enter it manually.",
+          variant: "destructive",
+        })
+        setNewVideo((prev) => ({ ...prev, autoDetectDuration: false, duration: prev.duration ?? 0 }))
+      }
+    }
+
+    return () => {
+      isCancelled = true
+      cleanup()
+    }
+  }, [videoFile, newVideo.autoDetectDuration, toast])
 
   const handleThumbnailUpload = (file: File | null, url: string) => {
     if (isEditingCourse) {
@@ -80,6 +141,45 @@ const SimplifiedCourseManager: React.FC = () => {
   useEffect(() => {
     fetchCourses()
   }, [])
+
+  useEffect(() => {
+    if (!selectedCourse || watchingVideoIndex === null || watchingVideoIndex < 0) {
+      setPreviewVideoUrl(null)
+      setPreviewError(null)
+      setPreviewLoading(false)
+      return
+    }
+
+    let isMounted = true
+
+    const fetchSignedUrl = async () => {
+      try {
+        setPreviewLoading(true)
+        setPreviewError(null)
+        const secureUrl = await secureVideoService.getSecureVideoUrl(selectedCourse._id, watchingVideoIndex)
+        if (isMounted) {
+          setPreviewVideoUrl(secureUrl)
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch secure video URL:", error)
+        if (isMounted) {
+          setPreviewError(error?.message || "Failed to load secure video URL")
+          const fallbackUrl = selectedCourse.videos?.[watchingVideoIndex]?.videoUrl || null
+          setPreviewVideoUrl(fallbackUrl)
+        }
+      } finally {
+        if (isMounted) {
+          setPreviewLoading(false)
+        }
+      }
+    }
+
+    fetchSignedUrl()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedCourse, watchingVideoIndex])
 
   const fetchCourses = async () => {
     try {
@@ -149,16 +249,26 @@ const SimplifiedCourseManager: React.FC = () => {
       return
     }
 
+    if (newVideo.duration === undefined || Number.isNaN(newVideo.duration) || newVideo.duration <= 0) {
+      if (!newVideo.autoDetectDuration) {
+        toast({
+          title: "Duration Required",
+          description: "We couldn't determine the video duration. Please enter it manually.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
     if (!showAddVideo) return
 
     try {
       setUploadProgress(0)
       const updatedCourse = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile)
 
-      // Update courses list
       setCourses(courses.map((course) => (course._id === showAddVideo ? updatedCourse : course)))
 
-      setNewVideo({ title: "", duration: 0 })
+      setNewVideo({ title: "", duration: undefined, autoDetectDuration: true })
       setVideoFile(null)
       setShowAddVideo(null)
       setUploadProgress(0)
@@ -603,14 +713,53 @@ const SimplifiedCourseManager: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-2">Duration (seconds)</label>
-                          <Input
-                            type="number"
-                            value={newVideo.duration}
-                            onChange={(e) => setNewVideo({ ...newVideo, duration: Number(e.target.value) })}
-                            placeholder="0"
-                            min="0"
-                          />
+                          <label className="block text-sm font-medium mb-2">Duration</label>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-1">
+                              <Input
+                                type="number"
+                                value={newVideo.duration ?? ""}
+                                onChange={(e) => {
+                                  const value = e.target.value
+                                  setNewVideo((prev) => ({
+                                    ...prev,
+                                    duration: value === "" ? undefined : Number(value),
+                                  }))
+                                }}
+                                placeholder={newVideo.autoDetectDuration ? "Detecting..." : "Enter duration in seconds"}
+                                min="0"
+                                className="flex-1"
+                                disabled={newVideo.autoDetectDuration}
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                {newVideo.autoDetectDuration
+                                  ? newVideo.duration
+                                    ? `Detected duration: ${newVideo.duration} seconds`
+                                    : videoFile
+                                      ? "Detecting video duration..."
+                                      : "Select a video file to detect duration"
+                                  : "Enter the duration manually if auto-detect is disabled."}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                id="auto-detect-duration"
+                                type="checkbox"
+                                checked={newVideo.autoDetectDuration ?? false}
+                                onChange={(e) =>
+                                  setNewVideo((prev) => ({
+                                    ...prev,
+                                    autoDetectDuration: e.target.checked,
+                                    duration: e.target.checked ? undefined : prev.duration,
+                                  }))
+                                }
+                                className="h-4 w-4"
+                              />
+                              <label htmlFor="auto-detect-duration" className="text-sm text-gray-600">
+                                Auto-detect
+                              </label>
+                            </div>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Video File</label>
@@ -1011,12 +1160,22 @@ const SimplifiedCourseManager: React.FC = () => {
               <DialogDescription>Admin preview of course video</DialogDescription>
             </DialogHeader>
             <div className="mt-4">
-              <VideoPlayer
-                lectureId={`${selectedCourse._id}_${watchingVideoIndex}`}
-                videoUrl={selectedCourse.videos[watchingVideoIndex].videoUrl}
-                title={selectedCourse.videos[watchingVideoIndex].title}
-                autoPlay={true}
-              />
+      {previewLoading ? (
+        <div className="w-full aspect-video bg-black flex flex-col items-center justify-center text-white space-y-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <p>Loading secure video...</p>
+        </div>
+      ) : (
+        <VideoPlayer
+          lectureId={`${selectedCourse._id}_${watchingVideoIndex}`}
+          videoUrl={previewVideoUrl || selectedCourse.videos[watchingVideoIndex].videoUrl}
+          title={selectedCourse.videos[watchingVideoIndex].title}
+          autoPlay={true}
+        />
+      )}
+      {previewError && (
+        <p className="text-xs text-red-500 mt-2">{previewError}</p>
+      )}
             </div>
           </DialogContent>
         </Dialog>
