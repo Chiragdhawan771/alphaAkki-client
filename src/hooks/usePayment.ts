@@ -39,7 +39,7 @@ export const usePayment = () => {
       const paymentOrder = await paymentService.createPaymentOrder(courseId, couponCode);
       console.log('usePayment: Payment order created:', paymentOrder);
 
-      // Initiate Razorpay payments
+      // Initiate Razorpay payment
       console.log('usePayment: Initiating Razorpay payment...');
       await paymentService.initiatePayment(
         paymentOrder,
