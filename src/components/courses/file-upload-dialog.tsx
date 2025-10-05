@@ -36,9 +36,9 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
   const { toast } = useToast()
 
   const acceptedTypes =
-    type === "image" ? "image/jpeg,image/png,image/gif,image/webp" : "video/mp4,video/webm,video/ogg"
+    type === "image" ? "image/jpeg,image/png,image/gif,image/webp" : "video/mp4,video/webm,video/ogg,/video/mov"
 
-  const maxSize = type === "image" ? 5 * 1024 * 1024 : 50 * 1024 * 1024 // 5MB for images, 50MB for videos
+  const maxSize = type === "image" ? 50 * 1024 * 1024 : 500 * 1024 * 1024 // 5MB for images, 50MB for videos
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -59,7 +59,7 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: `File size must be less than ${type === "image" ? "5MB" : "50MB"}`,
+        description: `File size must be less than ${type === "image" ? "50MB" : "500MB"}`,
         variant: "destructive",
       })
       return
@@ -199,7 +199,7 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Max size: {type === "image" ? "5MB" : "50MB"}. Supported formats:{" "}
-                  {type === "image" ? "JPEG, PNG, GIF, WebP" : "MP4, WebM, OGG"}
+                  {type === "image" ? "JPEG, PNG, GIF, WebP" : "MP4, WebM, OGG,Mov"}
                 </p>
               </div>
 
