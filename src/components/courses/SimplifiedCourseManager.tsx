@@ -158,17 +158,17 @@ const SimplifiedCourseManager: React.FC = () => {
 
   const handleThumbnailUpload = (file: File | null, url: string) => {
     if (isEditingCourse) {
-      setEditCourseData({ ...editCourseData, thumbnail: file })
+      setEditCourseData({ ...editCourseData, thumbnail: url })
     } else {
-      setNewCourse({ ...newCourse, thumbnail: file })
+      setNewCourse({ ...newCourse, thumbnail: url })
     }
   }
 
   const handlePreviewVideoUpload = (file: File | null, url: string) => {
     if (isEditingCourse) {
-      setEditCourseData({ ...editCourseData, previewVideo: file })
+      setEditCourseData({ ...editCourseData, previewVideo: url })
     } else {
-      setNewCourse({ ...newCourse, previewVideo: file })
+      setNewCourse({ ...newCourse, previewVideo: url })
     }
   }
 
@@ -638,7 +638,7 @@ const SimplifiedCourseManager: React.FC = () => {
                     {newCourse.thumbnail && (
                       <div className="relative">
                         <img
-                          src={URL.createObjectURL(newCourse.thumbnail) || "/placeholder.svg"}
+                          src={newCourse.thumbnail || "/placeholder.svg"}
                           alt="Thumbnail preview"
                           className="w-full h-24 object-cover rounded border"
                         />
@@ -663,7 +663,7 @@ const SimplifiedCourseManager: React.FC = () => {
                     {newCourse.previewVideo && (
                       <div className="relative">
                         <video
-                          src={URL.createObjectURL(newCourse.previewVideo)}
+                          src={newCourse.previewVideo}
                           className="w-full h-24 object-cover rounded border"
                           controls
                         />
