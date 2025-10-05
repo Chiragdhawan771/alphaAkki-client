@@ -211,7 +211,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Simplified Stats Section */}
-            {isInstructor && (
+            {/* {isInstructor && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

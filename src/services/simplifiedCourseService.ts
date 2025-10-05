@@ -16,8 +16,8 @@ export interface SimplifiedCourse {
   status: 'draft' | 'published' | 'archived';
   level: 'beginner' | 'intermediate' | 'advanced';
   enrollmentCount: number;
-  thumbnail?: string;
-  previewVideo?: string;
+  thumbnail?: string | File|any;
+  previewVideo?: string | File|any;
   shortDescription?: string;
   learningOutcomes?: string[];
   prerequisites?: string[];
@@ -54,8 +54,8 @@ export interface CreateCourseData {
   description: string;
   price: number;
   type?: 'free' | 'paid';
-  thumbnail?: string;
-  previewVideo?: string;
+  thumbnail?: string | File|any;
+  previewVideo?: string | File|any;
   shortDescription?: string;
   learningOutcomes?: string[];
   prerequisites?: string[];
@@ -90,7 +90,33 @@ class SimplifiedCourseService {
   // Admin: Create course
   async createCourse(courseData: CreateCourseData) {
     try {
-      const response = await axiosInstance.post('/simplified-courses', courseData);
+      const formData = new FormData();
+      
+      // Append text fields
+      Object.entries(courseData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((item) => formData.append(key, item));
+        } else if (value !== undefined && value !== null && typeof value !== 'object') {
+          formData.append(key, JSON.stringify(value));
+        }
+      });
+
+      // Append files
+      if (courseData.thumbnail instanceof File) {
+        formData.append('thumbnail', courseData.thumbnail);
+      } else if (typeof courseData.thumbnail === 'string') {
+        formData.append('thumbnailUrl', courseData.thumbnail); // external URL
+      }
+
+      if (courseData.previewVideo instanceof File) {
+        formData.append('previewVideo', courseData.previewVideo);
+      } else if (typeof courseData.previewVideo === 'string') {
+        formData.append('previewVideoUrl', courseData.previewVideo); // external URL
+      }
+
+      const response = await axiosInstance.post('/simplified-courses', formData,{ headers: {
+          'Content-Type': 'multipart/form-data',
+        }});
       return response.data as { video: { title: string; videoUrl: string; videoKey: string; duration: number; order: number; uploadedAt: string } };
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -127,9 +153,43 @@ class SimplifiedCourseService {
   }
 
   // Admin: Update course
-  async updateCourse(courseId: string, courseData: UpdateCourseData) {
+  async updateCourse(
+    courseId: string,
+    courseData: any,
+    files?: { thumbnail?: File; previewVideo?: File } // optional files
+  ) {
     try {
-      const response = await axiosInstance.patch(`/simplified-courses/${courseId}`, courseData);
+      let payload: FormData | UpdateCourseData;
+      let headers: Record<string, string> = {};
+
+      if (files && (files.thumbnail || files.previewVideo)) {
+        // Use FormData if any file is provided
+        payload = new FormData();
+
+        // Append text fields
+        for (const key in courseData) {
+          if (courseData[key] !== undefined && courseData[key] !== null) {
+            payload.append(key, courseData[key]);
+          }
+        }
+
+        // Append files if provided
+        if (files.thumbnail) payload.append('thumbnail', files.thumbnail);
+        if (files.previewVideo) payload.append('previewVideo', files.previewVideo);
+
+        headers['Content-Type'] = 'multipart/form-data';
+      } else {
+        // No files, send JSON
+        payload = courseData;
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const response = await axiosInstance.patch(
+        `/simplified-courses/${courseId}`,
+        payload,
+        { headers }
+      );
+
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -138,6 +198,7 @@ class SimplifiedCourseService {
       throw new Error('Failed to update course');
     }
   }
+
 
   // Admin: Delete course
   async deleteCourse(courseId: string) {
