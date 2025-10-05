@@ -84,6 +84,7 @@ const SimplifiedCourseManager: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false)
   const [isDurationDetecting, setIsDurationDetecting] = useState(false)
   const [safeDuration, setSafeDuration] = useState<number | undefined>(undefined)
+  const [courseCreateLoader,setCourseCreateLoader]=useState(false)
 
   useEffect(() => {
     if (!videoFile) {
@@ -232,6 +233,7 @@ const SimplifiedCourseManager: React.FC = () => {
   }
 
   const handleCreateCourse = async () => {
+    setCourseCreateLoader(true)
     if (!newCourse.title.trim() || !newCourse.description.trim()) {
       toast({
         title: "Validation Error",
@@ -259,7 +261,6 @@ const SimplifiedCourseManager: React.FC = () => {
         tags: [],
       })
       setShowCreateCourse(false)
-
       toast({
         title: "Success!",
         description: "Course created successfully",
@@ -271,6 +272,8 @@ const SimplifiedCourseManager: React.FC = () => {
         variant: "destructive",
       })
     }
+    setCourseCreateLoader(false)
+
   }
 
   const handleAddVideo = async () => {
@@ -723,7 +726,8 @@ const SimplifiedCourseManager: React.FC = () => {
                 <Button variant="outline" onClick={() => setShowCreateCourse(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateCourse}>Create Course</Button>
+                <Button onClick={handleCreateCourse}>{courseCreateLoader?<><Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Creating</>:"Create Course"}</Button>
               </div>
             </div>
           </DialogContent>
