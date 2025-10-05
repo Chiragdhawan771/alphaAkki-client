@@ -88,10 +88,10 @@ export interface AddVideoData {
 
 class SimplifiedCourseService {
   // Admin: Create course
-  async createCourse(courseData: CreateCourseData) {
+  async createCourse(courseData: CreateCourseData): Promise<SimplifiedCourse> {
     try {
       const response = await axiosInstance.post('/simplified-courses', courseData);
-      return response.data as { video: { title: string; videoUrl: string; videoKey: string; duration: number; order: number; uploadedAt: string } };
+      return response.data as SimplifiedCourse;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to create course');
@@ -101,10 +101,10 @@ class SimplifiedCourseService {
   }
 
   // Admin: Get instructor's courses
-  async getInstructorCourses() {
+  async getInstructorCourses(): Promise<SimplifiedCourse[]> {
     try {
       const response = await axiosInstance.get('/simplified-courses/my-courses');
-      return response.data as { video: { title: string; videoUrl: string; videoKey: string; duration: number; order: number; uploadedAt: string } };
+      return response.data as SimplifiedCourse[];
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to fetch courses');

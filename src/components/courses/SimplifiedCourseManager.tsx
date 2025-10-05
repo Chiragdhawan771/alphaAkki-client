@@ -156,7 +156,7 @@ const SimplifiedCourseManager: React.FC = () => {
     }
   }, [videoFile, newVideo.autoDetectDuration])
 
-  const handleThumbnailUpload = (file: File | null, url: string) => {
+  const handleThumbnailUpload = (file: File | null, url: string, s3Key?: string) => {
     if (isEditingCourse) {
       setEditCourseData({ ...editCourseData, thumbnail: url })
     } else {
@@ -164,7 +164,7 @@ const SimplifiedCourseManager: React.FC = () => {
     }
   }
 
-  const handlePreviewVideoUpload = (file: File | null, url: string) => {
+  const handlePreviewVideoUpload = (file: File | null, url: string, s3Key?: string) => {
     if (isEditingCourse) {
       setEditCourseData({ ...editCourseData, previewVideo: url })
     } else {

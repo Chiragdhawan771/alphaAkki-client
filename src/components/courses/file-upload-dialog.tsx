@@ -13,13 +13,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Upload, X, ImageIcon, Video, FileText } from "lucide-react"
+import { Upload, X, ImageIcon, Video, FileText, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import fileUploadService from "@/services/fileUploadService"
 
 interface FileUploadDialogProps {
   type: "image" | "video"
   currentUrl?: string
-  onFileSelect: (file: File | null, url: string) => void
+  onFileSelect: (file: File | null, url: string, s3Key?: string) => void
   trigger: React.ReactNode
 }
 
@@ -29,6 +30,8 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
   const [previewUrl, setPreviewUrl] = useState<string>(currentUrl || "")
   const [urlInput, setUrlInput] = useState<string>(currentUrl || "")
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file")
+  const [isUploading, setIsUploading] = useState(false)
+  const [s3Key, setS3Key] = useState<string | undefined>(undefined)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
@@ -75,11 +78,44 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
     setSelectedFile(null)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (uploadMethod === "file" && selectedFile) {
-      onFileSelect(selectedFile, previewUrl)
+      try {
+        setIsUploading(true)
+        
+        // Upload to S3
+        let uploadResult
+        if (type === "image") {
+          uploadResult = await fileUploadService.uploadCourseImage(selectedFile)
+        } else {
+          uploadResult = await fileUploadService.uploadCourseVideo(selectedFile)
+        }
+        
+        // Pass the S3 URL and key to parent
+        onFileSelect(selectedFile, uploadResult.url, uploadResult.key)
+        setS3Key(uploadResult.key)
+        
+        setIsOpen(false)
+        toast({
+          title: "Success",
+          description: `${type === "image" ? "Thumbnail" : "Preview video"} uploaded to S3 successfully`,
+        })
+      } catch (error: any) {
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload file to S3",
+          variant: "destructive",
+        })
+      } finally {
+        setIsUploading(false)
+      }
     } else if (uploadMethod === "url" && urlInput.trim()) {
       onFileSelect(null, urlInput.trim())
+      setIsOpen(false)
+      toast({
+        title: "Success",
+        description: `${type === "image" ? "Thumbnail" : "Preview video"} URL updated successfully`,
+      })
     } else {
       toast({
         title: "No file selected",
@@ -88,18 +124,13 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
       })
       return
     }
-
-    setIsOpen(false)
-    toast({
-      title: "Success",
-      description: `${type === "image" ? "Thumbnail" : "Preview video"} updated successfully`,
-    })
   }
 
   const handleRemove = () => {
     setSelectedFile(null)
     setPreviewUrl("")
     setUrlInput("")
+    setS3Key(undefined)
     onFileSelect(null, "")
     setIsOpen(false)
   }
@@ -279,11 +310,18 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
               Remove {type === "image" ? "Thumbnail" : "Video"}
             </Button>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isUploading}>
                 Cancel
               </Button>
-              <Button type="button" onClick={handleSave} disabled={!previewUrl}>
-                Save {type === "image" ? "Thumbnail" : "Video"}
+              <Button type="button" onClick={handleSave} disabled={!previewUrl || isUploading}>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  `Save ${type === "image" ? "Thumbnail" : "Video"}`
+                )}
               </Button>
             </div>
           </div>
