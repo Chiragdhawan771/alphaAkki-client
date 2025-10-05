@@ -36,7 +36,7 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
   const { toast } = useToast()
 
   const acceptedTypes =
-    type === "image" ? "image/jpeg,image/png,image/gif,image/webp" : "video/mp4,video/webm,video/ogg,/video/mov"
+    type === "image" ? "image/jpeg,image/png,image/gif,image/webp" : "video/mp4,video/webm,video/ogg,video/quicktime,video/mov"
 
   const maxSize = type === "image" ? 50 * 1024 * 1024 : 500 * 1024 * 1024 // 5MB for images, 50MB for videos
 
