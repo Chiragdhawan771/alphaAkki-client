@@ -153,7 +153,7 @@ class SimplifiedCourseService {
   }
 
   // Admin: Add video to course
-  async addVideo(courseId: string, videoData: AddVideoData, videoFile: File) {
+  async addVideo(courseId: string, videoData: AddVideoData, videoFile: File,onUploadProgress?: (progress: number) => void) {
     try {
       const formData = new FormData();
       formData.append('video', videoFile);
@@ -168,6 +168,14 @@ class SimplifiedCourseService {
       const response = await axiosInstance.post(`/simplified-courses/${courseId}/videos`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            if (onUploadProgress) onUploadProgress(percent);
+          }
         },
       });
       return response.data;

@@ -273,7 +273,6 @@ const SimplifiedCourseManager: React.FC = () => {
       })
     }
     setCourseCreateLoader(false)
-
   }
 
   const handleAddVideo = async () => {
@@ -313,7 +312,9 @@ const SimplifiedCourseManager: React.FC = () => {
     try {
       setIsUploading(true)
       setUploadProgress(0)
-      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile)
+      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile,(percent) => {
+        setUploadProgress(percent);
+      })
       const uploadedVideo = uploadResult?.video
 
       if (!uploadedVideo) {
