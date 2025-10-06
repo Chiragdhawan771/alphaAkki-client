@@ -11,7 +11,7 @@ class FileUploadService {
   /**
    * Upload course thumbnail image to S3
    */
-  async uploadCourseImage(file: File): Promise<UploadResult> {
+  async uploadCourseImage(file: File, onUploadProgress?: (progress: number) => void): Promise<UploadResult> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -19,6 +19,15 @@ class FileUploadService {
       const response = await axiosInstance.post('/files/upload/course-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+        },
+        timeout: 0,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            if (onUploadProgress) onUploadProgress(percent);
+          }
         },
       });
       return response.data;
@@ -33,7 +42,7 @@ class FileUploadService {
   /**
    * Upload course preview video to S3
    */
-  async uploadCourseVideo(file: File): Promise<UploadResult> {
+  async uploadCourseVideo(file: File, onUploadProgress?: (progress: number) => void): Promise<UploadResult> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -41,6 +50,15 @@ class FileUploadService {
       const response = await axiosInstance.post('/files/upload/course-video', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+        },
+        timeout: 0,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            if (onUploadProgress) onUploadProgress(percent);
+          }
         },
       });
       return response.data;

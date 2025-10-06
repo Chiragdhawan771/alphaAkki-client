@@ -169,6 +169,7 @@ class SimplifiedCourseService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+          timeout: 0,
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percent = Math.round(

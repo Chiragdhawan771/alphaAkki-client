@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import type React from "react";
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -12,152 +12,187 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Upload, X, ImageIcon, Video, FileText, Loader2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import fileUploadService from "@/services/fileUploadService"
+} from "@/components/ui/dialog";
+import { Upload, X, ImageIcon, Video, FileText, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import fileUploadService from "@/services/fileUploadService";
 
 interface FileUploadDialogProps {
-  type: "image" | "video"
-  currentUrl?: string
-  onFileSelect: (file: File | null, url: string, s3Key?: string) => void
-  trigger: React.ReactNode
+  type: "image" | "video";
+  currentUrl?: string;
+  onFileSelect: (file: File | null, url: string, s3Key?: string) => void;
+  trigger: React.ReactNode;
 }
 
-export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: FileUploadDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string>(currentUrl || "")
-  const [urlInput, setUrlInput] = useState<string>(currentUrl || "")
-  const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file")
-  const [isUploading, setIsUploading] = useState(false)
-  const [s3Key, setS3Key] = useState<string | undefined>(undefined)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast } = useToast()
+export function FileUploadDialog({
+  type,
+  currentUrl,
+  onFileSelect,
+  trigger,
+}: FileUploadDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>(currentUrl || "");
+  const [urlInput, setUrlInput] = useState<string>(currentUrl || "");
+  const [uploadMethod, setUploadMethod] = useState<"file" | "url">("file");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [s3Key, setS3Key] = useState<string | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const acceptedTypes =
-    type === "image" ? "image/jpeg,image/png,image/gif,image/webp" : "video/mp4,video/webm,video/ogg,video/quicktime,video/mov"
+    type === "image"
+      ? "image/jpeg,image/png,image/gif,image/webp"
+      : "video/mp4,video/webm,video/ogg,video/quicktime,video/mov";
 
-  const maxSize = type === "image" ? 50 * 1024 * 1024 : 500 * 1024 * 1024 // 5MB for images, 50MB for videos
+  const maxSize = type === "image" ? 50 * 1024 * 1024 : 2000 * 1024 * 1024; // 50MB for images, 2000MB for videos
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     // Validate file type
-    const validTypes = acceptedTypes.split(",")
+    const validTypes = acceptedTypes.split(",");
     if (!validTypes.some((validType) => file.type === validType.trim())) {
       toast({
         title: "Invalid file type",
         description: `Please select a valid ${type} file`,
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // Validate file size
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: `File size must be less than ${type === "image" ? "50MB" : "500MB"}`,
+        description: `File size must be less than ${
+          type === "image" ? "50MB" : "2000MB"
+        }`,
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setSelectedFile(file)
+    setSelectedFile(file);
 
     // Create preview URL
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
-  }
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+  };
 
   const handleUrlChange = (url: string) => {
-    setUrlInput(url)
-    setPreviewUrl(url)
-    setSelectedFile(null)
-  }
+    setUrlInput(url);
+    setPreviewUrl(url);
+    setSelectedFile(null);
+  };
 
   const handleSave = async () => {
     if (uploadMethod === "file" && selectedFile) {
       try {
-        setIsUploading(true)
-        
-        // Upload to S3
-        let uploadResult
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        // Upload to S3 with progress tracking
+        let uploadResult;
         if (type === "image") {
-          uploadResult = await fileUploadService.uploadCourseImage(selectedFile)
+          uploadResult = await fileUploadService.uploadCourseImage(
+            selectedFile,
+            (percent) => {
+              setUploadProgress(percent);
+            }
+          );
         } else {
-          uploadResult = await fileUploadService.uploadCourseVideo(selectedFile)
+          uploadResult = await fileUploadService.uploadCourseVideo(
+            selectedFile,
+            (percent) => {
+              setUploadProgress(percent);
+            }
+          );
         }
-        
+
         // Pass the S3 URL and key to parent
-        onFileSelect(selectedFile, uploadResult.url, uploadResult.key)
-        setS3Key(uploadResult.key)
-        
-        setIsOpen(false)
+        onFileSelect(selectedFile, uploadResult.url, uploadResult.key);
+        setS3Key(uploadResult.key);
+
+        setIsOpen(false);
+        setUploadProgress(0);
         toast({
           title: "Success",
-          description: `${type === "image" ? "Thumbnail" : "Preview video"} uploaded to S3 successfully`,
-        })
+          description: `${
+            type === "image" ? "Thumbnail" : "Preview video"
+          } uploaded to S3 successfully`,
+        });
       } catch (error: any) {
         toast({
           title: "Upload Failed",
           description: error.message || "Failed to upload file to S3",
           variant: "destructive",
-        })
+        });
+        setUploadProgress(0);
       } finally {
-        setIsUploading(false)
+        setIsUploading(false);
       }
     } else if (uploadMethod === "url" && urlInput.trim()) {
-      onFileSelect(null, urlInput.trim())
-      setIsOpen(false)
+      onFileSelect(null, urlInput.trim());
+      setIsOpen(false);
       toast({
         title: "Success",
-        description: `${type === "image" ? "Thumbnail" : "Preview video"} URL updated successfully`,
-      })
+        description: `${
+          type === "image" ? "Thumbnail" : "Preview video"
+        } URL updated successfully`,
+      });
     } else {
       toast({
         title: "No file selected",
         description: `Please select a ${type} file or enter a URL`,
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
-  }
+  };
 
   const handleRemove = () => {
-    setSelectedFile(null)
-    setPreviewUrl("")
-    setUrlInput("")
-    setS3Key(undefined)
-    onFileSelect(null, "")
-    setIsOpen(false)
-  }
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setUrlInput("");
+    setS3Key(undefined);
+    setUploadProgress(0);
+    onFileSelect(null, "");
+    setIsOpen(false);
+  };
 
   const resetDialog = () => {
-    setSelectedFile(null)
-    setPreviewUrl(currentUrl || "")
-    setUrlInput(currentUrl || "")
-    setUploadMethod("file")
-  }
+    setSelectedFile(null);
+    setPreviewUrl(currentUrl || "");
+    setUrlInput(currentUrl || "");
+    setUploadMethod("file");
+    setUploadProgress(0);
+  };
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        setIsOpen(open)
-        if (!open) resetDialog()
+        setIsOpen(open);
+        if (!open) resetDialog();
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {type === "image" ? <ImageIcon className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+            {type === "image" ? (
+              <ImageIcon className="h-5 w-5" />
+            ) : (
+              <Video className="h-5 w-5" />
+            )}
             Upload {type === "image" ? "Thumbnail" : "Preview Video"}
           </DialogTitle>
-          <DialogDescription>Choose a {type} file from your device or enter a URL</DialogDescription>
+          <DialogDescription>
+            Choose a {type} file from your device or enter a URL
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -195,34 +230,42 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                     accept={acceptedTypes}
                     onChange={handleFileSelect}
                     className="cursor-pointer"
+                    disabled={isUploading}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Max size: {type === "image" ? "5MB" : "50MB"}. Supported formats:{" "}
-                  {type === "image" ? "JPEG, PNG, GIF, WebP" : "MP4, WebM, OGG,Mov"}
+                  Max size: {type === "image" ? "50MB" : "2000MB"}. Supported
+                  formats:{" "}
+                  {type === "image"
+                    ? "JPEG, PNG, GIF, WebP"
+                    : "MP4, WebM, OGG, MOV"}
                 </p>
               </div>
 
               {/* Drag and Drop Area */}
               <div
                 className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
                 onDragOver={(e) => {
-                  e.preventDefault()
-                  e.currentTarget.classList.add("border-primary")
+                  e.preventDefault();
+                  e.currentTarget.classList.add("border-primary");
                 }}
                 onDragLeave={(e) => {
-                  e.preventDefault()
-                  e.currentTarget.classList.remove("border-primary")
+                  e.preventDefault();
+                  e.currentTarget.classList.remove("border-primary");
                 }}
                 onDrop={(e) => {
-                  e.preventDefault()
-                  e.currentTarget.classList.remove("border-primary")
-                  const files = e.dataTransfer.files
-                  if (files.length > 0) {
-                    const file = files[0]
-                    const event = { target: { files: [file] } } as React.ChangeEvent<HTMLInputElement>
-                    handleFileSelect(event)
+                  e.preventDefault();
+                  e.currentTarget.classList.remove("border-primary");
+                  if (!isUploading) {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                      const file = files[0];
+                      const event = {
+                        target: { files: [file] },
+                      } as React.ChangeEvent<HTMLInputElement>;
+                      handleFileSelect(event);
+                    }
                   }
                 }}
               >
@@ -231,30 +274,55 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                 ) : (
                   <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 )}
-                <p className="text-sm font-medium">Drop your {type} here, or click to browse</p>
+                <p className="text-sm font-medium">
+                  Drop your {type} here, or click to browse
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {type === "image" ? "PNG, JPG, GIF up to 5MB" : "MP4, WebM, OGG up to 50MB"}
+                  {type === "image"
+                    ? "PNG, JPG, GIF up to 50MB"
+                    : "MP4, WebM, OGG, MOV up to 2000MB"}
                 </p>
               </div>
+
+              {/* Upload Progress Bar */}
+              {isUploading && uploadProgress > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Uploading {type}...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-orange-500 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="url-input">{type === "image" ? "Thumbnail" : "Video"} URL</Label>
+                <Label htmlFor="url-input">
+                  {type === "image" ? "Thumbnail" : "Video"} URL
+                </Label>
                 <Input
                   id="url-input"
                   type="url"
-                  placeholder={`https://example.com/${type === "image" ? "thumbnail.jpg" : "video.mp4"}`}
+                  placeholder={`https://example.com/${
+                    type === "image" ? "thumbnail.jpg" : "video.mp4"
+                  }`}
                   value={urlInput}
                   onChange={(e) => handleUrlChange(e.target.value)}
                   className="mt-2"
+                  disabled={isUploading}
                 />
               </div>
             </div>
           )}
 
           {/* Preview */}
-          {previewUrl && (
+          {previewUrl && !isUploading && (
             <div className="space-y-2">
               <Label>Preview</Label>
               <div className="relative border rounded-lg overflow-hidden">
@@ -264,12 +332,12 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                     alt="Preview"
                     className="w-full h-48 object-cover"
                     onError={() => {
-                      setPreviewUrl("")
+                      setPreviewUrl("");
                       toast({
                         title: "Invalid image",
                         description: "The image URL is not valid or accessible",
                         variant: "destructive",
-                      })
+                      });
                     }}
                   />
                 ) : (
@@ -278,12 +346,12 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                     className="w-full h-48 object-cover"
                     controls
                     onError={() => {
-                      setPreviewUrl("")
+                      setPreviewUrl("");
                       toast({
                         title: "Invalid video",
                         description: "The video URL is not valid or accessible",
                         variant: "destructive",
-                      })
+                      });
                     }}
                   />
                 )}
@@ -293,10 +361,11 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
                   size="sm"
                   className="absolute top-2 right-2"
                   onClick={() => {
-                    setPreviewUrl("")
-                    setSelectedFile(null)
-                    setUrlInput("")
+                    setPreviewUrl("");
+                    setSelectedFile(null);
+                    setUrlInput("");
                   }}
+                  disabled={isUploading}
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -306,18 +375,32 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
 
           {/* Action Buttons */}
           <div className="flex justify-between">
-            <Button type="button" variant="outline" onClick={handleRemove} disabled={!currentUrl && !previewUrl}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRemove}
+              disabled={(!currentUrl && !previewUrl) || isUploading}
+            >
               Remove {type === "image" ? "Thumbnail" : "Video"}
             </Button>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isUploading}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isUploading}
+              >
                 Cancel
               </Button>
-              <Button type="button" onClick={handleSave} disabled={!previewUrl || isUploading}>
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={!previewUrl || isUploading}
+              >
                 {isUploading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    Uploading {uploadProgress}%
                   </>
                 ) : (
                   `Save ${type === "image" ? "Thumbnail" : "Video"}`
@@ -328,5 +411,5 @@ export function FileUploadDialog({ type, currentUrl, onFileSelect, trigger }: Fi
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
