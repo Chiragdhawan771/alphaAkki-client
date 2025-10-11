@@ -90,7 +90,7 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <input
                       id="remember-me"
@@ -101,7 +101,7 @@ export default function LoginPage() {
                     <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                       Remember me
                     </label>
-                  </div>
+                  </div> */}
 
                   <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500">
                     Forgot password?
