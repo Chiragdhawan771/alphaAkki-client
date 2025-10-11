@@ -86,6 +86,26 @@ export interface AddVideoData {
   autoDetectDuration?: boolean;
 }
 
+export interface MultipartUploadSession {
+  sessionId: string;
+  uploadId: string;
+  key: string;
+  bucket: string;
+}
+
+export interface PresignedPartUrl {
+  partNumber: number;
+  presignedUrl: string;
+}
+
+export interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+  chunkIndex?: number;
+  totalChunks?: number;
+}
+
 class SimplifiedCourseService {
   // Admin: Create course
   async createCourse(courseData: CreateCourseData): Promise<SimplifiedCourse> {
@@ -152,40 +172,357 @@ class SimplifiedCourseService {
     }
   }
 
-  // Admin: Add video to course
-  async addVideo(courseId: string, videoData: AddVideoData, videoFile: File,onUploadProgress?: (progress: number) => void) {
+  // Admin: Add video to course using multipart upload
+  async addVideo(
+    courseId: string, 
+    videoData: AddVideoData, 
+    videoFile: File,
+    onUploadProgress?: (progress: UploadProgress) => void
+  ) {
     try {
-      const formData = new FormData();
-      formData.append('video', videoFile);
-      formData.append('title', videoData.title);
-      if (videoData.autoDetectDuration) {
-        formData.append('autoDetectDuration', 'true');
+      // File size validation
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB limit
+      const MIN_FILE_SIZE = 1024; // 1KB minimum
+      
+      if (videoFile.size > MAX_FILE_SIZE) {
+        throw new Error(`File size (${this.formatFileSize(videoFile.size)}) exceeds maximum allowed size of ${this.formatFileSize(MAX_FILE_SIZE)}`);
       }
-      if (videoData.duration !== undefined) {
-        formData.append('duration', videoData.duration.toString());
+      
+      if (videoFile.size < MIN_FILE_SIZE) {
+        throw new Error(`File size (${this.formatFileSize(videoFile.size)}) is too small. Minimum size is ${this.formatFileSize(MIN_FILE_SIZE)}`);
       }
-
-      const response = await axiosInstance.post(`/simplified-courses/${courseId}/videos`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-          timeout: 0,
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            if (onUploadProgress) onUploadProgress(percent);
-          }
-        },
-      });
-      return response.data;
+      
+      // Validate file type
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/mkv'];
+      if (!allowedTypes.includes(videoFile.type)) {
+        throw new Error(`Unsupported file type: ${videoFile.type}. Supported types: ${allowedTypes.join(', ')}`);
+      }
+      
+      // Use multipart upload for large files (>50MB) or all files
+      const shouldUseMultipart = videoFile.size > 50 * 1024 * 1024 || true;
+      
+      if (shouldUseMultipart) {
+        return await this.multipartVideoUpload(courseId, videoData, videoFile, onUploadProgress);
+      } else {
+        // Fallback to legacy upload for small files (if needed)
+        return await this.legacyVideoUpload(courseId, videoData, videoFile, onUploadProgress);
+      }
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(error.response?.data?.message || 'Failed to upload video');
       }
       throw new Error('Failed to upload video');
     }
+  }
+  
+  // Helper method to format file sizes
+  private formatFileSize(bytes: number): string {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let size = bytes;
+    let unitIndex = 0;
+    
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+    
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  }
+
+  // Multipart upload implementation
+  private async multipartVideoUpload(
+    courseId: string,
+    videoData: AddVideoData,
+    videoFile: File,
+    onUploadProgress?: (progress: UploadProgress) => void
+  ) {
+    // Optimize chunk size based on file size
+    const CHUNK_SIZE = this.getOptimalChunkSize(videoFile.size);
+    const totalChunks = Math.ceil(videoFile.size / CHUNK_SIZE);
+    const chunkProgress = new Array(totalChunks).fill(0); // Track progress per chunk
+    let session: MultipartUploadSession | null = null;
+
+    try {
+      // Step 1: Initialize multipart upload
+      onUploadProgress?.({
+        loaded: 0,
+        total: videoFile.size,
+        percentage: 0,
+        chunkIndex: 0,
+        totalChunks
+      });
+      
+      session = await this.initiateMultipartUpload(courseId, videoData, videoFile, CHUNK_SIZE, totalChunks);
+      
+      // Step 2: Upload chunks in parallel (with concurrency limit)
+      const uploadedParts = await this.uploadChunksInParallel(
+        courseId,
+        session,
+        videoFile,
+        CHUNK_SIZE,
+        totalChunks,
+        (chunkUpdate) => {
+          // Update progress for specific chunk
+          chunkProgress[chunkUpdate.chunkIndex] = chunkUpdate.loaded;
+          
+          // Calculate total uploaded bytes
+          const totalUploaded = chunkProgress.reduce((sum, bytes) => sum + bytes, 0);
+          
+          const overallProgress: UploadProgress = {
+            loaded: totalUploaded,
+            total: videoFile.size,
+            percentage: Math.round((totalUploaded / videoFile.size) * 100),
+            chunkIndex: chunkUpdate.chunkIndex,
+            totalChunks
+          };
+          onUploadProgress?.(overallProgress);
+        }
+      );
+
+      // Step 3: Complete multipart upload - show completion progress
+      onUploadProgress?.({
+        loaded: videoFile.size,
+        total: videoFile.size,
+        percentage: 100,
+        chunkIndex: totalChunks - 1,
+        totalChunks
+      });
+      
+      const result = await this.completeMultipartUpload(courseId, session.sessionId, uploadedParts);
+      
+      return result;
+    } catch (error) {
+      console.error('Multipart upload failed:', error);
+      
+      // Cleanup: Abort multipart upload on failure
+      if (session) {
+        try {
+          await this.abortMultipartUpload(courseId, session.sessionId);
+          console.log('Multipart upload aborted due to failure');
+        } catch (abortError) {
+          console.error('Failed to abort multipart upload:', abortError);
+        }
+      }
+      
+      // Re-throw with more context
+      if (error instanceof Error) {
+        throw new Error(`Multipart upload failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  // Initialize multipart upload session
+  private async initiateMultipartUpload(
+    courseId: string,
+    videoData: AddVideoData,
+    videoFile: File,
+    chunkSize: number,
+    totalChunks: number
+  ): Promise<MultipartUploadSession> {
+    try {
+      const response = await axiosInstance.post(`/simplified-courses/${courseId}/videos/uploads/initiate`, {
+        title: videoData.title,
+        fileName: videoFile.name,
+        mimeType: videoFile.type,
+        fileSize: videoFile.size,
+        partSize: chunkSize,
+        totalParts: totalChunks,
+        duration: videoData.duration,
+        autoDetectDuration: videoData.autoDetectDuration
+      });
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to initialize upload');
+      }
+      throw new Error('Failed to initialize upload');
+    }
+  }
+
+  // Upload chunks in parallel with concurrency control and retry logic
+  private async uploadChunksInParallel(
+    courseId: string,
+    session: MultipartUploadSession,
+    file: File,
+    chunkSize: number,
+    totalChunks: number,
+    onChunkProgress: (progress: { loaded: number; chunkIndex: number }) => void
+  ) {
+    const MAX_CONCURRENT_UPLOADS = 3;
+    const MAX_RETRIES = 3;
+    const uploadedParts: { partNumber: number; eTag: string }[] = [];
+    
+    // Create chunks
+    const chunks: { partNumber: number; chunk: Blob; start: number; end: number }[] = [];
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+      chunks.push({ partNumber: i + 1, chunk, start, end });
+    }
+
+    // Upload chunk with retry logic
+    const uploadChunkWithRetry = async (chunkData: typeof chunks[0], retryCount = 0): Promise<{ partNumber: number; eTag: string }> => {
+      try {
+        // Get presigned URL for this part
+        const presignedResponse = await axiosInstance.post(
+          `/simplified-courses/${courseId}/videos/uploads/${session.sessionId}/parts/presign`,
+          { partNumbers: [chunkData.partNumber] }
+        );
+
+        console.log(`Presigned response for chunk ${chunkData.partNumber}:`, presignedResponse.data);
+        
+        // Backend returns parts array with url property, not presignedUrls
+        const presignedUrl = presignedResponse.data.parts[0]?.url;
+        if (!presignedUrl) {
+          console.error('No presigned URL in response:', presignedResponse.data);
+          throw new Error(`Failed to get presigned URL for part ${chunkData.partNumber}`);
+        }
+
+        // Upload chunk directly to S3
+        console.log(`Uploading chunk ${chunkData.partNumber} (${chunkData.chunk.size} bytes) to S3...`);
+        
+        const uploadResponse = await fetch(presignedUrl, {
+          method: 'PUT',
+          body: chunkData.chunk,
+          // Don't set Content-Type for S3 multipart uploads - let S3 handle it
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text().catch(() => 'Unknown error');
+          console.error(`S3 upload failed for chunk ${chunkData.partNumber}:`, {
+            status: uploadResponse.status,
+            statusText: uploadResponse.statusText,
+            error: errorText
+          });
+          throw new Error(`Failed to upload chunk ${chunkData.partNumber}: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        }
+
+        const etag = uploadResponse.headers.get('ETag');
+        if (!etag) {
+          throw new Error(`No ETag received for part ${chunkData.partNumber}`);
+        }
+
+        // Report progress for this chunk
+        onChunkProgress({
+          loaded: chunkData.chunk.size,
+          chunkIndex: chunkData.partNumber - 1
+        });
+
+        return {
+          partNumber: chunkData.partNumber,
+          eTag: etag.replace(/"/g, '') // Remove quotes from ETag (note: eTag not etag)
+        };
+      } catch (error) {
+        console.error(`Failed to upload chunk ${chunkData.partNumber} (attempt ${retryCount + 1}):`, error);
+        
+        // Retry logic
+        if (retryCount < MAX_RETRIES) {
+          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+          console.log(`Retrying chunk ${chunkData.partNumber} in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return uploadChunkWithRetry(chunkData, retryCount + 1);
+        }
+        
+        throw new Error(`Failed to upload chunk ${chunkData.partNumber} after ${MAX_RETRIES + 1} attempts: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    };
+
+    // Process chunks in batches with concurrency control
+    for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_UPLOADS) {
+      const batch = chunks.slice(i, i + MAX_CONCURRENT_UPLOADS);
+      const batchResults = await Promise.all(batch.map(chunk => uploadChunkWithRetry(chunk)));
+      uploadedParts.push(...batchResults);
+    }
+
+    // Sort parts by part number
+    return uploadedParts.sort((a, b) => a.partNumber - b.partNumber);
+  }
+
+  // Complete multipart upload
+  private async completeMultipartUpload(
+    courseId: string,
+    sessionId: string,
+    parts: { partNumber: number; eTag: string }[]
+  ) {
+    try {
+      const response = await axiosInstance.post(
+        `/simplified-courses/${courseId}/videos/uploads/${sessionId}/complete`,
+        { parts }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to complete upload');
+      }
+      throw new Error('Failed to complete upload');
+    }
+  }
+
+  // Abort multipart upload
+  private async abortMultipartUpload(courseId: string, sessionId: string) {
+    try {
+      await axiosInstance.delete(`/simplified-courses/${courseId}/videos/uploads/${sessionId}`);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.message || 'Failed to abort upload');
+      }
+      throw new Error('Failed to abort upload');
+    }
+  }
+
+  // Get optimal chunk size based on file size
+  private getOptimalChunkSize(fileSize: number): number {
+    const MB = 1024 * 1024;
+    const GB = 1024 * MB;
+    
+    // Optimize chunk size based on file size for better performance
+    if (fileSize < 100 * MB) {
+      return 5 * MB;   // 5MB chunks for small files
+    } else if (fileSize < 500 * MB) {
+      return 10 * MB;  // 10MB chunks for medium files
+    } else if (fileSize < 2 * GB) {
+      return 25 * MB;  // 25MB chunks for large files
+    } else {
+      return 50 * MB;  // 50MB chunks for very large files
+    }
+  }
+
+  // Legacy upload method (fallback)
+  private async legacyVideoUpload(
+    courseId: string,
+    videoData: AddVideoData,
+    videoFile: File,
+    onUploadProgress?: (progress: UploadProgress) => void
+  ) {
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    formData.append('title', videoData.title);
+    if (videoData.autoDetectDuration) {
+      formData.append('autoDetectDuration', 'true');
+    }
+    if (videoData.duration !== undefined) {
+      formData.append('duration', videoData.duration.toString());
+    }
+
+    const response = await axiosInstance.post(`/simplified-courses/${courseId}/videos`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 0,
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const progress: UploadProgress = {
+            loaded: progressEvent.loaded,
+            total: progressEvent.total,
+            percentage: Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          };
+          onUploadProgress?.(progress);
+        }
+      },
+    });
+    return response.data;
   }
 
   // Admin: Remove video from course

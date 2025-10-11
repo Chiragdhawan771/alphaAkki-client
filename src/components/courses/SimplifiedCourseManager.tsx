@@ -35,6 +35,7 @@ import simplifiedCourseService, {
   type SimplifiedCourse,
   type CreateCourseData,
   type AddVideoData,
+  type UploadProgress,
 } from "@/services/simplifiedCourseService"
 import VideoPlayer from "./VideoPlayer"
 import { FileUploadDialog } from "./file-upload-dialog"
@@ -77,7 +78,8 @@ const SimplifiedCourseManager: React.FC = () => {
     autoDetectDuration: true,
   })
   const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ loaded: 0, total: 0, percentage: 0 })
+  const [uploadStatus, setUploadStatus] = useState<string>('')
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
   const [videoSize, setVideoSize] = useState<string | null>(null)
   const [videoError, setVideoError] = useState<string | null>(null)
@@ -311,10 +313,28 @@ const SimplifiedCourseManager: React.FC = () => {
 
     try {
       setIsUploading(true)
-      setUploadProgress(0)
-      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile,(percent) => {
-        setUploadProgress(percent);
+      setUploadProgress({ loaded: 0, total: videoFile.size, percentage: 0 })
+      setUploadStatus('Initializing upload...')
+      
+      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile, (progress) => {
+        setUploadProgress(progress);
+        
+        // Update status based on progress
+        if (progress.percentage === 0) {
+          setUploadStatus('Initializing upload...');
+        } else if (progress.percentage === 100) {
+          setUploadStatus('Finalizing upload...');
+        } else if (progress.chunkIndex !== undefined && progress.totalChunks !== undefined) {
+          const completedChunks = progress.chunkIndex + 1;
+          setUploadStatus(`Uploading chunk ${completedChunks} of ${progress.totalChunks} (${progress.percentage}%)`);
+        } else {
+          setUploadStatus(`Uploading... ${progress.percentage}%`);
+        }
       })
+      
+      // Show completion status
+      setUploadStatus('Upload completed successfully!');
+      setUploadProgress({ loaded: videoFile.size, total: videoFile.size, percentage: 100 });
       const uploadedVideo = uploadResult?.video
 
       if (!uploadedVideo) {
@@ -354,7 +374,7 @@ const SimplifiedCourseManager: React.FC = () => {
       setVideoError(null)
       setSafeDuration(undefined)
       setShowAddVideo(null)
-      setUploadProgress(0)
+      setUploadProgress({ loaded: 0, total: 0, percentage: 0 })
 
       toast({
         title: "Lecture Added",
@@ -368,6 +388,7 @@ const SimplifiedCourseManager: React.FC = () => {
       })
     } finally {
       setIsUploading(false)
+      setUploadStatus('')
     }
   }
 
@@ -521,6 +542,19 @@ const SimplifiedCourseManager: React.FC = () => {
       return `${mins}m ${secs}s`
     }
     return `${secs}s`
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB']
+    let size = bytes
+    let unitIndex = 0
+    
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024
+      unitIndex++
+    }
+    
+    return `${size.toFixed(1)} ${units[unitIndex]}`
   }
 
   return (
@@ -883,18 +917,46 @@ const SimplifiedCourseManager: React.FC = () => {
                                 {videoError && <p className="text-xs text-red-500">{videoError}</p>}
                               </div>
 
-                              {uploadProgress > 0 && (
-                                <div className="space-y-2">
-                                  <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Uploading</span>
-                                    <span>{uploadProgress}%</span>
+                              {(uploadProgress.percentage > 0 || isUploading) && (
+                                <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium text-gray-700">{uploadStatus || 'Uploading'}</span>
+                                    <span className="font-bold text-orange-600">{uploadProgress.percentage}%</span>
                                   </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                  
+                                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                     <div
-                                      className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${uploadProgress}%` }}
+                                      className={`h-3 rounded-full transition-all duration-500 ${
+                                        uploadProgress.percentage === 100 
+                                          ? 'bg-green-500' 
+                                          : 'bg-gradient-to-r from-orange-500 to-red-500'
+                                      }`}
+                                      style={{ width: `${uploadProgress.percentage}%` }}
                                     ></div>
                                   </div>
+                                  
+                                  <div className="flex justify-between text-xs text-gray-500">
+                                    <span>
+                                      {uploadProgress.loaded > 0 && uploadProgress.total > 0
+                                        ? `${formatFileSize(uploadProgress.loaded)} / ${formatFileSize(uploadProgress.total)}`
+                                        : 'Preparing...'}
+                                    </span>
+                                    {uploadProgress.totalChunks && (
+                                      <span>
+                                        {uploadProgress.chunkIndex !== undefined 
+                                          ? `Chunk ${uploadProgress.chunkIndex + 1}/${uploadProgress.totalChunks}`
+                                          : `${uploadProgress.totalChunks} chunks`
+                                        }
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  {uploadProgress.percentage === 100 && (
+                                    <div className="flex items-center justify-center text-green-600 text-sm font-medium">
+                                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                                      Upload completed successfully!
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
