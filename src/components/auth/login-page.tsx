@@ -91,12 +91,12 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex items-center justify-end">
-                  <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                  <Link href="/forgot-password"  className="text-sm font-medium text-orange-600 hover:text-orange-500">
                     Forgot password?
                   </Link>
                 </div>
               </CardContent>
-
+ 
               <CardFooter className="flex flex-col space-y-4 pt-6">
                 <Button
                   type="submit"
