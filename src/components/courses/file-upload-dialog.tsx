@@ -234,7 +234,7 @@ export function FileUploadDialog({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Max size: {type === "image" ? "50MB" : "2000MB"}. Supported
+                  Max size: {type === "image" ? "50MB" : "5000MB"}. Supported
                   formats:{" "}
                   {type === "image"
                     ? "JPEG, PNG, GIF, WebP"
@@ -280,7 +280,7 @@ export function FileUploadDialog({
                 <p className="text-xs text-muted-foreground mt-1">
                   {type === "image"
                     ? "PNG, JPG, GIF up to 50MB"
-                    : "MP4, WebM, OGG, MOV up to 2000MB"}
+                    : "MP4, WebM, OGG, MOV up to 5GB"}
                 </p>
               </div>
 

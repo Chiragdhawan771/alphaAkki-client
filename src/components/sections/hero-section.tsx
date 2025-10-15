@@ -96,7 +96,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
       </div>
 
-      <div className="container relative mx-auto px-4 py-8 sm:py-12 md:py-16 lg:py-20 max-w-7xl">
+      <div className="container relative mx-auto px-4 py-4 sm:py-8 md:py-16 lg:py-0 max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16 items-center min-h-[calc(100vh-8rem)]">
           {/* Left Content */}
           <div className="flex flex-col space-y-6 sm:space-y-8 order-2 lg:order-1">

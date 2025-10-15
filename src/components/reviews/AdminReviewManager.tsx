@@ -266,7 +266,7 @@ export default function AdminReviewManager() {
                         {/* Course Info */}
                         <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                           <p className="text-sm text-gray-700">
-                            <strong>Course:</strong> {review.course.title}
+                            <strong>Course:</strong> {review?.course?.title}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Student: {review.student.email}

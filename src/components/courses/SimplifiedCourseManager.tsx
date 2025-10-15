@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import {
   Edit,
   Eye,
@@ -21,7 +21,7 @@ import {
   Clock,
   Loader2,
   CheckCircle2,
-} from "lucide-react"
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,35 +29,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import simplifiedCourseService, {
   type SimplifiedCourse,
   type CreateCourseData,
   type AddVideoData,
   type UploadProgress,
-} from "@/services/simplifiedCourseService"
-import VideoPlayer from "./VideoPlayer"
-import { FileUploadDialog } from "./file-upload-dialog"
-import secureVideoService from "@/services/secureVideoService"
+} from "@/services/simplifiedCourseService";
+import VideoPlayer from "./VideoPlayer";
+import { FileUploadDialog } from "./file-upload-dialog";
+import secureVideoService from "@/services/secureVideoService";
 
 const SimplifiedCourseManager: React.FC = () => {
-  const [courses, setCourses] = useState<SimplifiedCourse[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateCourse, setShowCreateCourse] = useState(false)
-  const [showAddVideo, setShowAddVideo] = useState<string | null>(null)
-  const [selectedCourse, setSelectedCourse] = useState<SimplifiedCourse | null>(null)
-  const [isEditingCourse, setIsEditingCourse] = useState(false)
-  const [editCourseData, setEditCourseData] = useState<Partial<SimplifiedCourse>>({})
-  const [watchingVideoIndex, setWatchingVideoIndex] = useState<number | null>(null)
-  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
-  const [previewError, setPreviewError] = useState<string | null>(null)
-  const [removingVideo, setRemovingVideo] = useState<Record<string, number | null>>({});
-const setVideoRemoving = (courseId: string, index: number | null) =>
-  setRemovingVideo(prev => ({ ...prev, [courseId]: index }));
+  const [courses, setCourses] = useState<SimplifiedCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateCourse, setShowCreateCourse] = useState(false);
+  const [showAddVideo, setShowAddVideo] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<SimplifiedCourse | null>(
+    null
+  );
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [editCourseData, setEditCourseData] = useState<
+    Partial<SimplifiedCourse>
+  >({});
+  const [watchingVideoIndex, setWatchingVideoIndex] = useState<number | null>(
+    null
+  );
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [removingVideo, setRemovingVideo] = useState<
+    Record<string, number | null>
+  >({});
+  const setVideoRemoving = (courseId: string, index: number | null) =>
+    setRemovingVideo((prev) => ({ ...prev, [courseId]: index }));
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   // Course creation form
   const [newCourse, setNewCourse] = useState<CreateCourseData>({
@@ -73,185 +87,215 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
     estimatedDuration: 0,
     category: "",
     tags: [],
-  })
+  });
 
   // Video upload form
   const [newVideo, setNewVideo] = useState<AddVideoData>({
     title: "",
     duration: undefined,
     autoDetectDuration: true,
-  })
-  const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({ loaded: 0, total: 0, percentage: 0 })
-  const [uploadStatus, setUploadStatus] = useState<string>('')
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
-  const [videoSize, setVideoSize] = useState<string | null>(null)
-  const [videoError, setVideoError] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isDurationDetecting, setIsDurationDetecting] = useState(false)
-  const [safeDuration, setSafeDuration] = useState<number | undefined>(undefined)
-  const [courseCreateLoader,setCourseCreateLoader]=useState(false)
+  });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    loaded: 0,
+    total: 0,
+    percentage: 0,
+  });
+  const [uploadStatus, setUploadStatus] = useState<string>("");
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [videoSize, setVideoSize] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDurationDetecting, setIsDurationDetecting] = useState(false);
+  const [safeDuration, setSafeDuration] = useState<number | undefined>(
+    undefined
+  );
+  const [courseCreateLoader, setCourseCreateLoader] = useState(false);
 
   useEffect(() => {
     if (!videoFile) {
-      setVideoPreviewUrl(null)
-      setVideoSize(null)
-      setVideoError(null)
-      setSafeDuration(undefined)
+      setVideoPreviewUrl(null);
+      setVideoSize(null);
+      setVideoError(null);
+      setSafeDuration(undefined);
       if (newVideo.autoDetectDuration) {
-        setNewVideo((prev) => ({ ...prev, duration: undefined }))
+        setNewVideo((prev) => ({ ...prev, duration: undefined }));
       }
-      return
+      return;
     }
 
-    setVideoError(null)
-    setVideoPreviewUrl(URL.createObjectURL(videoFile))
-    const sizeInMb = videoFile.size / (1024 * 1024)
-    setVideoSize(`${sizeInMb.toFixed(sizeInMb > 10 ? 1 : 2)} MB`)
+    setVideoError(null);
+    setVideoPreviewUrl(URL.createObjectURL(videoFile));
+    const sizeInMb = videoFile.size / (1024 * 1024);
+    setVideoSize(`${sizeInMb.toFixed(sizeInMb > 10 ? 1 : 2)} MB`);
 
     if (!newVideo.autoDetectDuration) {
-      return
+      return;
     }
 
-    let isCancelled = false
-    setIsDurationDetecting(true)
+    let isCancelled = false;
+    setIsDurationDetecting(true);
 
-    const tempVideo = document.createElement("video")
-    tempVideo.preload = "metadata"
-    tempVideo.src = URL.createObjectURL(videoFile)
+    const tempVideo = document.createElement("video");
+    tempVideo.preload = "metadata";
+    tempVideo.src = URL.createObjectURL(videoFile);
 
     const cleanup = () => {
-      tempVideo.removeAttribute("src")
-      tempVideo.load()
-      URL.revokeObjectURL(tempVideo.src)
-      setIsDurationDetecting(false)
-    }
+      tempVideo.removeAttribute("src");
+      tempVideo.load();
+      URL.revokeObjectURL(tempVideo.src);
+      setIsDurationDetecting(false);
+    };
 
     tempVideo.onloadedmetadata = () => {
       if (isCancelled) {
-        cleanup()
-        return
+        cleanup();
+        return;
       }
 
-      const detectedDuration = Math.round(tempVideo.duration || 0)
+      const detectedDuration = Math.round(tempVideo.duration || 0);
       if (Number.isFinite(detectedDuration) && detectedDuration > 0) {
-        setSafeDuration(detectedDuration)
+        setSafeDuration(detectedDuration);
         setNewVideo((prev) => ({
           ...prev,
           duration: detectedDuration,
-        }))
+        }));
       } else {
-        setVideoError("Unable to detect duration automatically. Please enter it manually.")
-        setSafeDuration(undefined)
-        setNewVideo((prev) => ({ ...prev, duration: undefined }))
+        setVideoError(
+          "Unable to detect duration automatically. Please enter it manually."
+        );
+        setSafeDuration(undefined);
+        setNewVideo((prev) => ({ ...prev, duration: undefined }));
       }
-      cleanup()
-    }
+      cleanup();
+    };
 
     tempVideo.onerror = () => {
       if (!isCancelled) {
-        setVideoError("We couldn't read this file. Please try a different video.")
-        setSafeDuration(undefined)
-        setNewVideo((prev) => ({ ...prev, duration: undefined, autoDetectDuration: false }))
+        setVideoError(
+          "We couldn't read this file. Please try a different video."
+        );
+        setSafeDuration(undefined);
+        setNewVideo((prev) => ({
+          ...prev,
+          duration: undefined,
+          autoDetectDuration: false,
+        }));
       }
-      cleanup()
-    }
+      cleanup();
+    };
 
     return () => {
-      isCancelled = true
-      cleanup()
-    }
-  }, [videoFile, newVideo.autoDetectDuration])
+      isCancelled = true;
+      cleanup();
+    };
+  }, [videoFile, newVideo.autoDetectDuration]);
 
-  const handleThumbnailUpload = (file: File | null, url: string, s3Key?: string) => {
+  const handleThumbnailUpload = (
+    file: File | null,
+    url: string,
+    s3Key?: string
+  ) => {
     if (isEditingCourse) {
-      setEditCourseData({ ...editCourseData, thumbnail: url })
+      setEditCourseData({ ...editCourseData, thumbnail: url });
     } else {
-      setNewCourse({ ...newCourse, thumbnail: url })
+      setNewCourse({ ...newCourse, thumbnail: url });
     }
-  }
+  };
 
-  const handlePreviewVideoUpload = (file: File | null, url: string, s3Key?: string) => {
+  const handlePreviewVideoUpload = (
+    file: File | null,
+    url: string,
+    s3Key?: string
+  ) => {
     if (isEditingCourse) {
-      setEditCourseData({ ...editCourseData, previewVideo: url })
+      setEditCourseData({ ...editCourseData, previewVideo: url });
     } else {
-      setNewCourse({ ...newCourse, previewVideo: url })
+      setNewCourse({ ...newCourse, previewVideo: url });
     }
-  }
+  };
 
   useEffect(() => {
-    fetchCourses()
-  }, [])
+    fetchCourses();
+  }, []);
 
   useEffect(() => {
-    if (!selectedCourse || watchingVideoIndex === null || watchingVideoIndex < 0) {
-      setPreviewVideoUrl(null)
-      setPreviewError(null)
-      setPreviewLoading(false)
-      return
+    if (
+      !selectedCourse ||
+      watchingVideoIndex === null ||
+      watchingVideoIndex < 0
+    ) {
+      setPreviewVideoUrl(null);
+      setPreviewError(null);
+      setPreviewLoading(false);
+      return;
     }
 
-    let isMounted = true
+    let isMounted = true;
 
     const fetchSignedUrl = async () => {
       try {
-        setPreviewLoading(true)
-        setPreviewError(null)
-        const secureUrl = await secureVideoService.getSecureVideoUrl(selectedCourse._id, watchingVideoIndex)
+        setPreviewLoading(true);
+        setPreviewError(null);
+        const secureUrl = await secureVideoService.getSecureVideoUrl(
+          selectedCourse._id,
+          watchingVideoIndex
+        );
         if (isMounted) {
-          setPreviewVideoUrl(secureUrl)
+          setPreviewVideoUrl(secureUrl);
         }
       } catch (error: any) {
-        console.error("Failed to fetch secure video URL:", error)
+        console.error("Failed to fetch secure video URL:", error);
         if (isMounted) {
-          setPreviewError(error?.message || "Failed to load secure video URL")
-          const fallbackUrl = selectedCourse.videos?.[watchingVideoIndex]?.videoUrl || null
-          setPreviewVideoUrl(fallbackUrl)
+          setPreviewError(error?.message || "Failed to load secure video URL");
+          const fallbackUrl =
+            selectedCourse.videos?.[watchingVideoIndex]?.videoUrl || null;
+          setPreviewVideoUrl(fallbackUrl);
         }
       } finally {
         if (isMounted) {
-          setPreviewLoading(false)
+          setPreviewLoading(false);
         }
       }
-    }
+    };
 
-    fetchSignedUrl()
+    fetchSignedUrl();
 
     return () => {
-      isMounted = false
-    }
-  }, [selectedCourse, watchingVideoIndex])
+      isMounted = false;
+    };
+  }, [selectedCourse, watchingVideoIndex]);
 
   const fetchCourses = async () => {
     try {
-      setLoading(true)
-      const coursesData = await simplifiedCourseService.getInstructorCourses()
-      setCourses(coursesData)
+      setLoading(true);
+      const coursesData = await simplifiedCourseService.getInstructorCourses();
+      setCourses(coursesData);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to fetch courses",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCreateCourse = async () => {
-    setCourseCreateLoader(true)
+    setCourseCreateLoader(true);
     if (!newCourse.title.trim() || !newCourse.description.trim()) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     try {
-      const course = await simplifiedCourseService.createCourse(newCourse)
-      setCourses([course, ...courses])
+      const course = await simplifiedCourseService.createCourse(newCourse);
+      setCourses([course, ...courses]);
       setNewCourse({
         title: "",
         description: "",
@@ -265,21 +309,21 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
         estimatedDuration: 0,
         category: "",
         tags: [],
-      })
-      setShowCreateCourse(false)
+      });
+      setShowCreateCourse(false);
       toast({
         title: "Success!",
         description: "Course created successfully",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to create course",
         variant: "destructive",
-      })
+      });
     }
-    setCourseCreateLoader(false)
-  }
+    setCourseCreateLoader(false);
+  };
 
   const handleAddVideo = async () => {
     if (!newVideo.title.trim()) {
@@ -287,8 +331,8 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
         title: "Title Required",
         description: "Please enter a title for this lecture before uploading.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!videoFile) {
@@ -296,11 +340,14 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
         title: "Video Required",
         description: "Select a video file to upload before continuing.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    const durationValid = newVideo.duration !== undefined && !Number.isNaN(newVideo.duration) && newVideo.duration > 0
+    const durationValid =
+      newVideo.duration !== undefined &&
+      !Number.isNaN(newVideo.duration) &&
+      newVideo.duration > 0;
 
     if (!durationValid) {
       toast({
@@ -309,92 +356,113 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
           ? "Please wait while we detect the duration or switch off auto-detect to enter it manually."
           : "Enter the video duration in seconds before uploading.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    if (!showAddVideo) return
+    if (!showAddVideo) return;
 
     try {
-      setIsUploading(true)
-      setUploadProgress({ loaded: 0, total: videoFile.size, percentage: 0 })
-      setUploadStatus('Initializing upload...')
-      
-      const uploadResult = await simplifiedCourseService.addVideo(showAddVideo, newVideo, videoFile, (progress) => {
-        setUploadProgress(progress);
-        
-        // Update status based on progress
-        if (progress.percentage === 0) {
-          setUploadStatus('Initializing upload...');
-        } else if (progress.percentage === 100) {
-          setUploadStatus('Finalizing upload...');
-        } else if (progress.chunkIndex !== undefined && progress.totalChunks !== undefined) {
-          const completedChunks = progress.chunkIndex + 1;
-          setUploadStatus(`Uploading chunk ${completedChunks} of ${progress.totalChunks} (${progress.percentage}%)`);
-        } else {
-          setUploadStatus(`Uploading... ${progress.percentage}%`);
+      setIsUploading(true);
+      setUploadProgress({ loaded: 0, total: videoFile.size, percentage: 0 });
+      setUploadStatus("Initializing upload...");
+
+      const uploadResult = await simplifiedCourseService.addVideo(
+        showAddVideo,
+        newVideo,
+        videoFile,
+        (progress) => {
+          setUploadProgress(progress);
+
+          // Update status based on progress
+          if (progress.percentage === 0) {
+            setUploadStatus("Initializing upload...");
+          } else if (progress.percentage === 100) {
+            setUploadStatus("Finalizing upload...");
+          } else if (
+            progress.chunkIndex !== undefined &&
+            progress.totalChunks !== undefined
+          ) {
+            const completedChunks = progress.chunkIndex + 1;
+            setUploadStatus(
+              `Uploading chunk ${completedChunks} of ${progress.totalChunks} (${progress.percentage}%)`
+            );
+          } else {
+            setUploadStatus(`Uploading... ${progress.percentage}%`);
+          }
         }
-      })
-      
+      );
+
       // Show completion status
-      setUploadStatus('Upload completed successfully!');
-      setUploadProgress({ loaded: videoFile.size, total: videoFile.size, percentage: 100 });
-      const uploadedVideo = uploadResult?.video
+      setUploadStatus("Upload completed successfully!");
+      setUploadProgress({
+        loaded: videoFile.size,
+        total: videoFile.size,
+        percentage: 100,
+      });
+      const uploadedVideo = uploadResult?.video;
 
       if (!uploadedVideo) {
-        throw new Error("Video upload succeeded but no video details were returned")
+        throw new Error(
+          "Video upload succeeded but no video details were returned"
+        );
       }
 
       const mergedVideo = {
         ...uploadedVideo,
         duration: newVideo.duration ?? uploadedVideo.duration,
         title: newVideo.title || uploadedVideo.title,
-      }
+      };
 
       setCourses((prev) =>
         prev.map((course) => {
-          if (course._id !== showAddVideo) return course
-          const videos = course.videos ? [...course.videos, mergedVideo] : [mergedVideo]
+          if (course._id !== showAddVideo) return course;
+          const videos = course.videos
+            ? [...course.videos, mergedVideo]
+            : [mergedVideo];
           return {
             ...course,
             videos,
-          }
+          };
         })
-      )
+      );
 
       setSelectedCourse((prev) =>
         prev && prev._id === showAddVideo
           ? {
               ...prev,
-              videos: prev.videos ? [...prev.videos, mergedVideo] : [mergedVideo],
+              videos: prev.videos
+                ? [...prev.videos, mergedVideo]
+                : [mergedVideo],
             }
           : prev
-      )
+      );
 
-      setNewVideo({ title: "", duration: undefined, autoDetectDuration: true })
-      setVideoFile(null)
-      setVideoPreviewUrl(null)
-      setVideoSize(null)
-      setVideoError(null)
-      setSafeDuration(undefined)
-      setShowAddVideo(null)
-      setUploadProgress({ loaded: 0, total: 0, percentage: 0 })
+      setNewVideo({ title: "", duration: undefined, autoDetectDuration: true });
+      setVideoFile(null);
+      setVideoPreviewUrl(null);
+      setVideoSize(null);
+      setVideoError(null);
+      setSafeDuration(undefined);
+      setShowAddVideo(null);
+      setUploadProgress({ loaded: 0, total: 0, percentage: 0 });
 
       toast({
         title: "Lecture Added",
         description: "The video lecture has been uploaded successfully.",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Upload Failed",
-        description: error.message || "Something went wrong while uploading the video.",
+        description:
+          error.message || "Something went wrong while uploading the video.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsUploading(false)
-      setUploadStatus('')
+      setIsUploading(false);
+      setUploadStatus("");
     }
-  }
+  };
 
  const handleRemoveVideo = async (courseId: string, videoIndex: number) => {
   try {
@@ -402,15 +470,32 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 
     await simplifiedCourseService.removeVideo(courseId, videoIndex);
 
-    // Option A: refetch full list to stay consistent with your fetchCourses()
-    await fetchCourses();
+    // 1) Update courses list immediately
+    setCourses(prev =>
+      prev.map(c =>
+        c._id === courseId
+          ? { ...c, videos: (c.videos || []).filter((_, i) => i !== videoIndex) }
+          : c
+      )
+    );
 
-    // Option B: local update without refetch:
-    // setCourses(prev => prev.map(c => 
-    //   c._id === courseId
-    //     ? { ...c, videos: (c.videos || []).filter((_, i) => i !== videoIndex) }
-    //     : c
-    // ));
+    // 2) Update the open modal copy
+    setSelectedCourse(prev =>
+      prev && prev._id === courseId
+        ? { ...prev, videos: (prev.videos || []).filter((_, i) => i !== videoIndex) }
+        : prev
+    );
+
+    // 3) Fix the player index if it pointed to or after the removed item
+    setWatchingVideoIndex(prevIdx => {
+      if (prevIdx == null) return prevIdx;
+      if (prevIdx === videoIndex) return null;           // closed video was removed
+      if (prevIdx > videoIndex) return prevIdx - 1;      // shift left
+      return prevIdx;
+    });
+
+    // 4) Optionally refetch in background to stay canonical
+    fetchCourses(); // no await to keep UI snappy
 
     toast({ title: "Removed", description: "Video deleted successfully" });
   } catch (error: any) {
@@ -425,52 +510,71 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 };
 
 
-  const handleUpdateCourseStatus = async (courseId: string, status: "draft" | "published" | "archived") => {
+  const handleUpdateCourseStatus = async (
+    courseId: string,
+    status: "draft" | "published" | "archived"
+  ) => {
     try {
-      const updatedCourse = await simplifiedCourseService.updateCourse(courseId, { status })
-      setCourses(courses.map((course) => (course._id === courseId ? { ...course, status } : course)))
+      const updatedCourse = await simplifiedCourseService.updateCourse(
+        courseId,
+        { status }
+      );
+      setCourses(
+        courses.map((course) =>
+          course._id === courseId ? { ...course, status } : course
+        )
+      );
 
       toast({
         title: "Success!",
         description: `Course ${status} successfully`,
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to update course",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleEditCourse = async () => {
-    if (!selectedCourse || !editCourseData.title || !editCourseData.description) {
+    if (
+      !selectedCourse ||
+      !editCourseData.title ||
+      !editCourseData.description
+    ) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     try {
-      const updatedCourse = await simplifiedCourseService.updateCourse(selectedCourse._id, editCourseData)
-      setCourses(courses.map((c) => (c._id === selectedCourse._id ? updatedCourse : c)))
-      setSelectedCourse(updatedCourse)
-      setIsEditingCourse(false)
+      const updatedCourse = await simplifiedCourseService.updateCourse(
+        selectedCourse._id,
+        editCourseData
+      );
+      setCourses(
+        courses.map((c) => (c._id === selectedCourse._id ? updatedCourse : c))
+      );
+      setSelectedCourse(updatedCourse);
+      setIsEditingCourse(false);
 
       toast({
         title: "Success!",
         description: "Course updated successfully",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to update course",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const startEditingCourse = (course: SimplifiedCourse) => {
     setEditCourseData({
@@ -486,99 +590,109 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
       estimatedDuration: course.estimatedDuration || 0,
       category: course.category || "",
       tags: course.tags || [],
-    })
-    setIsEditingCourse(true)
-  }
+    });
+    setIsEditingCourse(true);
+  };
 
   const handleDeleteCourse = async (courseId: string) => {
-    if (!confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
-      return
+    if (
+      !confirm(
+        "Are you sure you want to delete this course? This action cannot be undone."
+      )
+    ) {
+      return;
     }
 
     try {
-      await simplifiedCourseService.deleteCourse(courseId)
-      setCourses(courses.filter((course) => course._id !== courseId))
+      await simplifiedCourseService.deleteCourse(courseId);
+      setCourses(courses.filter((course) => course._id !== courseId));
 
       toast({
         title: "Success!",
         description: "Course deleted successfully",
-      })
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to delete course",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "published":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "draft":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "archived":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
-    )
+    );
   }
 
   const renderDurationDisplay = () => {
     if (!newVideo.autoDetectDuration) {
-      return newVideo.duration ? formatSeconds(newVideo.duration) : "Manual entry"
+      return newVideo.duration
+        ? formatSeconds(newVideo.duration)
+        : "Manual entry";
     }
     if (isDurationDetecting) {
-      return "Detecting..."
+      return "Detecting...";
     }
     if (safeDuration) {
-      return formatSeconds(safeDuration)
+      return formatSeconds(safeDuration);
     }
-    return "Not detected"
-  }
+    return "Not detected";
+  };
 
   const formatSeconds = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
     if (hrs > 0) {
-      return `${hrs}h ${mins}m ${secs}s`
+      return `${hrs}h ${mins}m ${secs}s`;
     }
     if (mins > 0) {
-      return `${mins}m ${secs}s`
+      return `${mins}m ${secs}s`;
     }
-    return `${secs}s`
-  }
+    return `${secs}s`;
+  };
 
   const formatFileSize = (bytes: number): string => {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB']
-    let size = bytes
-    let unitIndex = 0
-    
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let size = bytes;
+    let unitIndex = 0;
+
     while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024
-      unitIndex++
+      size /= 1024;
+      unitIndex++;
     }
-    
-    return `${size.toFixed(1)} ${units[unitIndex]}`
-  }
+
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Course Management</h1>
-          <p className="text-gray-600">Create and manage your courses with video content</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Course Management
+          </h1>
+          <p className="text-gray-600">
+            Create and manage your courses with video content
+          </p>
         </div>
         <Dialog open={showCreateCourse} onOpenChange={setShowCreateCourse}>
           <DialogTrigger asChild>
@@ -590,43 +704,64 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>Create New Course</DialogTitle>
-              <DialogDescription>Fill in the details to create a new course</DialogDescription>
+              <DialogDescription>
+                Fill in the details to create a new course
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Course Title *</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Course Title *
+                  </label>
                   <Input
                     value={newCourse.title}
-                    onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, title: e.target.value })
+                    }
                     placeholder="Enter course title"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Category
+                  </label>
                   <Input
                     value={newCourse.category || ""}
-                    onChange={(e) => setNewCourse({ ...newCourse, category: e.target.value })}
+                    onChange={(e) =>
+                      setNewCourse({ ...newCourse, category: e.target.value })
+                    }
                     placeholder="e.g., Web Development, Design"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Short Description</label>
+                <label className="block text-sm font-medium mb-2">
+                  Short Description
+                </label>
                 <Input
                   value={newCourse.shortDescription || ""}
-                  onChange={(e) => setNewCourse({ ...newCourse, shortDescription: e.target.value })}
+                  onChange={(e) =>
+                    setNewCourse({
+                      ...newCourse,
+                      shortDescription: e.target.value,
+                    })
+                  }
                   placeholder="Brief course summary (max 200 characters)"
                   maxLength={200}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Full Description *</label>
+                <label className="block text-sm font-medium mb-2">
+                  Full Description *
+                </label>
                 <Textarea
                   value={newCourse.description}
-                  onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewCourse({ ...newCourse, description: e.target.value })
+                  }
                   placeholder="Enter detailed course description"
                   rows={4}
                 />
@@ -637,7 +772,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   <label className="block text-sm font-medium mb-2">Type</label>
                   <Select
                     value={newCourse.type}
-                    onValueChange={(value: "free" | "paid") => setNewCourse({ ...newCourse, type: value })}
+                    onValueChange={(value: "free" | "paid") =>
+                      setNewCourse({ ...newCourse, type: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -650,22 +787,36 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                 </div>
                 {newCourse.type === "paid" && (
                   <div>
-                    <label className="block text-sm font-medium mb-2">Price (₹)</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Price (₹)
+                    </label>
                     <Input
                       type="number"
-                      value={newCourse.price || ''}
-                      onChange={(e) => setNewCourse({ ...newCourse, price: Number(e.target.value) || 0 })}
+                      value={newCourse.price || ""}
+                      onChange={(e) =>
+                        setNewCourse({
+                          ...newCourse,
+                          price: Number(e.target.value) || 0,
+                        })
+                      }
                       placeholder="Enter price"
                       min="0"
                     />
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Duration (hours)</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Duration (hours)
+                  </label>
                   <Input
                     type="number"
-                    value={newCourse.estimatedDuration || ''}
-                    onChange={(e) => setNewCourse({ ...newCourse, estimatedDuration: Number(e.target.value) || 0 })}
+                    value={newCourse.estimatedDuration || ""}
+                    onChange={(e) =>
+                      setNewCourse({
+                        ...newCourse,
+                        estimatedDuration: Number(e.target.value) || 0,
+                      })
+                    }
                     placeholder="Est. hours"
                     min="0"
                     step="0.5"
@@ -675,16 +826,24 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Course Thumbnail</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Course Thumbnail
+                  </label>
                   <div className="space-y-2">
                     <FileUploadDialog
                       type="image"
                       currentUrl={newCourse.thumbnail}
                       onFileSelect={handleThumbnailUpload}
                       trigger={
-                        <Button type="button" variant="outline" className="w-full bg-transparent">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full bg-transparent"
+                        >
                           <ImageIcon className="h-4 w-4 mr-2" />
-                          {newCourse.thumbnail ? "Change Thumbnail" : "Upload Thumbnail"}
+                          {newCourse.thumbnail
+                            ? "Change Thumbnail"
+                            : "Upload Thumbnail"}
                         </Button>
                       }
                     />
@@ -700,16 +859,24 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Preview Video</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Preview Video
+                  </label>
                   <div className="space-y-2">
                     <FileUploadDialog
                       type="video"
                       currentUrl={newCourse.previewVideo}
                       onFileSelect={handlePreviewVideoUpload}
                       trigger={
-                        <Button type="button" variant="outline" className="w-full bg-transparent">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full bg-transparent"
+                        >
                           <Video className="h-4 w-4 mr-2" />
-                          {newCourse.previewVideo ? "Change Preview Video" : "Upload Preview Video"}
+                          {newCourse.previewVideo
+                            ? "Change Preview Video"
+                            : "Upload Preview Video"}
                         </Button>
                       }
                     />
@@ -727,13 +894,17 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Learning Outcomes</label>
+                <label className="block text-sm font-medium mb-2">
+                  Learning Outcomes
+                </label>
                 <Textarea
                   value={newCourse.learningOutcomes?.join("\n") || ""}
                   onChange={(e) =>
                     setNewCourse({
                       ...newCourse,
-                      learningOutcomes: e.target.value.split("\n").filter((item) => item.trim()),
+                      learningOutcomes: e.target.value
+                        .split("\n")
+                        .filter((item) => item.trim()),
                     })
                   }
                   placeholder="What will students learn? (one per line)\ne.g., Build responsive websites\nMaster React fundamentals"
@@ -742,13 +913,17 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Prerequisites</label>
+                <label className="block text-sm font-medium mb-2">
+                  Prerequisites
+                </label>
                 <Textarea
                   value={newCourse.prerequisites?.join("\n") || ""}
                   onChange={(e) =>
                     setNewCourse({
                       ...newCourse,
-                      prerequisites: e.target.value.split("\n").filter((item) => item.trim()),
+                      prerequisites: e.target.value
+                        .split("\n")
+                        .filter((item) => item.trim()),
                     })
                   }
                   placeholder="What should students know beforehand? (one per line)\ne.g., Basic HTML/CSS knowledge\nFamiliarity with JavaScript"
@@ -773,11 +948,22 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowCreateCourse(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateCourse(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleCreateCourse}>{courseCreateLoader?<><Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Creating</>:"Create Course"}</Button>
+                <Button onClick={handleCreateCourse}>
+                  {courseCreateLoader ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating
+                    </>
+                  ) : (
+                    "Create Course"
+                  )}
+                </Button>
               </div>
             </div>
           </DialogContent>
@@ -790,7 +976,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-lg font-semibold mb-2">No courses yet</h3>
-            <p className="text-gray-600 mb-4">Create your first course to get started with teaching</p>
+            <p className="text-gray-600 mb-4">
+              Create your first course to get started with teaching
+            </p>
             <Button onClick={() => setShowCreateCourse(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Course
@@ -800,40 +988,59 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <Card key={course._id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={course._id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{course.title}</CardTitle>
-                    <Badge className={getStatusColor(course.status)}>{course.status}</Badge>
+                    <CardTitle className="text-lg mb-2">
+                      {course.title}
+                    </CardTitle>
+                    <Badge className={getStatusColor(course.status)}>
+                      {course.status}
+                    </Badge>
                   </div>
                   <div className="flex space-x-1">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedCourse(course)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedCourse(course)}
+                    >
                       <Eye className="h-3 w-3" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setSelectedCourse(course)
-                        startEditingCourse(course)
+                        setSelectedCourse(course);
+                        startEditingCourse(course);
                       }}
                     >
                       <Edit className="h-3 w-3" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDeleteCourse(course._id)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteCourse(course._id)}
+                    >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {course.description}
+                </p>
 
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Videos:</span>
-                    <span className="font-medium">{course?.videos?.length || 0}</span>
+                    <span className="font-medium">
+                      {course?.videos?.length || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Enrollments:</span>
@@ -844,17 +1051,25 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Price:</span>
-                    <span className="font-medium">{course.type === "free" ? "Free" : `Rs.${course.price}`}</span>
+                    <span className="font-medium">
+                      {course.type === "free" ? "Free" : `Rs.${course.price}`}
+                    </span>
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2">
                   <Dialog
                     open={showAddVideo === course._id}
-                    onOpenChange={(open) => setShowAddVideo(open ? course._id : null)}
+                    onOpenChange={(open) =>
+                      setShowAddVideo(open ? course._id : null)
+                    }
                   >
                     <DialogTrigger asChild>
-                      <Button size="sm" className="w-full bg-transparent" variant="outline">
+                      <Button
+                        size="sm"
+                        className="w-full bg-transparent"
+                        variant="outline"
+                      >
                         <Upload className="h-3 w-3 mr-2" />
                         Add Video
                       </Button>
@@ -862,30 +1077,53 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                     <DialogContent className="sm:max-w-3xl p-0 overflow-hidden">
                       <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1 px-6 py-6">
                         <DialogHeader className="space-y-2">
-                          <DialogTitle className="text-lg">Add Lecture Video</DialogTitle>
+                          <DialogTitle className="text-lg">
+                            Add Lecture Video
+                          </DialogTitle>
                           <DialogDescription>
-                            Provide the lecture details and upload the lesson video for <span className="font-medium text-foreground">{course.title}</span>.
+                            Provide the lecture details and upload the lesson
+                            video for{" "}
+                            <span className="font-medium text-foreground">
+                              {course.title}
+                            </span>
+                            .
                           </DialogDescription>
                         </DialogHeader>
 
                         <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
                           <div className="space-y-5">
                             <div className="space-y-2">
-                              <label className="block text-sm font-medium">Video Title</label>
+                              <label className="block text-sm font-medium">
+                                Video Title
+                              </label>
                               <Input
+                              required
                                 value={newVideo.title}
-                                onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                                onChange={(e) =>
+                                  setNewVideo({
+                                    ...newVideo,
+                                    title: e.target.value,
+                                  })
+                                }
                                 placeholder="Intro to React Hooks"
                               />
-                              <p className="text-xs text-muted-foreground">Students will see this title in the course outline.</p>
+                              <p className="text-xs text-muted-foreground">
+                                Students will see this title in the course
+                                outline.
+                              </p>
                             </div>
 
                             <div className="grid gap-4">
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <label className="block text-sm font-medium">Duration</label>
+                                  <label className="block text-sm font-medium">
+                                    Duration
+                                  </label>
                                   {safeDuration && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
                                       Detected {formatSeconds(safeDuration)}
                                     </Badge>
                                   )}
@@ -895,13 +1133,20 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                                     type="number"
                                     value={newVideo.duration ?? ""}
                                     onChange={(e) => {
-                                      const value = e.target.value
+                                      const value = e.target.value;
                                       setNewVideo((prev) => ({
                                         ...prev,
-                                        duration: value === "" ? undefined : Number(value),
-                                      }))
+                                        duration:
+                                          value === ""
+                                            ? undefined
+                                            : Number(value),
+                                      }));
                                     }}
-                                    placeholder={newVideo.autoDetectDuration ? "Detecting..." : "Enter seconds"}
+                                    placeholder={
+                                      newVideo.autoDetectDuration
+                                        ? "Detecting..."
+                                        : "Enter seconds"
+                                    }
                                     min="0"
                                     className="pr-24"
                                     disabled={newVideo.autoDetectDuration}
@@ -915,57 +1160,84 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                                     <input
                                       id="auto-detect-duration"
                                       type="checkbox"
-                                      checked={newVideo.autoDetectDuration ?? false}
+                                      checked={
+                                        newVideo.autoDetectDuration ?? false
+                                      }
                                       onChange={(e) =>
                                         setNewVideo((prev) => ({
                                           ...prev,
                                           autoDetectDuration: e.target.checked,
-                                          duration: e.target.checked ? safeDuration : prev.duration,
+                                          duration: e.target.checked
+                                            ? safeDuration
+                                            : prev.duration,
                                         }))
                                       }
                                       className="h-4 w-4"
                                     />
                                     <span>Auto-detect duration</span>
                                   </label>
-                                  <span>{newVideo.autoDetectDuration ? (isDurationDetecting ? "Reading video…" : "We will use the detected length") : "Enter the duration manually"}</span>
+                                  <span>
+                                    {newVideo.autoDetectDuration
+                                      ? isDurationDetecting
+                                        ? "Reading video…"
+                                        : "We will use the detected length"
+                                      : "Enter the duration manually"}
+                                  </span>
                                 </div>
-                                {videoError && <p className="text-xs text-red-500">{videoError}</p>}
+                                {videoError && (
+                                  <p className="text-xs text-red-500">
+                                    {videoError}
+                                  </p>
+                                )}
                               </div>
 
-                              {(uploadProgress.percentage > 0 || isUploading) && (
+                              {(uploadProgress.percentage > 0 ||
+                                isUploading) && (
                                 <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
                                   <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium text-gray-700">{uploadStatus || 'Uploading'}</span>
-                                    <span className="font-bold text-orange-600">{uploadProgress.percentage}%</span>
+                                    <span className="font-medium text-gray-700">
+                                      {uploadStatus || "Uploading"}
+                                    </span>
+                                    <span className="font-bold text-orange-600">
+                                      {uploadProgress.percentage}%
+                                    </span>
                                   </div>
-                                  
+
                                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                     <div
                                       className={`h-3 rounded-full transition-all duration-500 ${
-                                        uploadProgress.percentage === 100 
-                                          ? 'bg-green-500' 
-                                          : 'bg-gradient-to-r from-orange-500 to-red-500'
+                                        uploadProgress.percentage === 100
+                                          ? "bg-green-500"
+                                          : "bg-gradient-to-r from-orange-500 to-red-500"
                                       }`}
-                                      style={{ width: `${uploadProgress.percentage}%` }}
+                                      style={{
+                                        width: `${uploadProgress.percentage}%`,
+                                      }}
                                     ></div>
                                   </div>
-                                  
+
                                   <div className="flex justify-between text-xs text-gray-500">
                                     <span>
-                                      {uploadProgress.loaded > 0 && uploadProgress.total > 0
-                                        ? `${formatFileSize(uploadProgress.loaded)} / ${formatFileSize(uploadProgress.total)}`
-                                        : 'Preparing...'}
+                                      {uploadProgress.loaded > 0 &&
+                                      uploadProgress.total > 0
+                                        ? `${formatFileSize(
+                                            uploadProgress.loaded
+                                          )} / ${formatFileSize(
+                                            uploadProgress.total
+                                          )}`
+                                        : "Preparing..."}
                                     </span>
                                     {uploadProgress.totalChunks && (
                                       <span>
-                                        {uploadProgress.chunkIndex !== undefined 
-                                          ? `Chunk ${uploadProgress.chunkIndex + 1}/${uploadProgress.totalChunks}`
-                                          : `${uploadProgress.totalChunks} chunks`
-                                        }
+                                        {uploadProgress.chunkIndex !== undefined
+                                          ? `Chunk ${
+                                              uploadProgress.chunkIndex + 1
+                                            }/${uploadProgress.totalChunks}`
+                                          : `${uploadProgress.totalChunks} chunks`}
                                       </span>
                                     )}
                                   </div>
-                                  
+
                                   {uploadProgress.percentage === 100 && (
                                     <div className="flex items-center justify-center text-green-600 text-sm font-medium">
                                       <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -983,7 +1255,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                                 id="video-upload"
                                 type="file"
                                 accept="video/*"
-                                onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  setVideoFile(e.target.files?.[0] || null)
+                                }
                                 className="hidden"
                               />
                               <label
@@ -993,10 +1267,12 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                                 <Upload className="h-5 w-5" />
                                 <div className="space-y-1">
                                   <p className="text-sm font-medium">
-                                    {videoFile ? "Replace selected video" : "Drag & drop or click to upload"}
+                                    {videoFile
+                                      ? "Replace selected video"
+                                      : "Drag & drop or click to upload"}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    MP4 / MOV / WEBM • up to 2GB
+                                    MP4 / MOV / WEBM • up to 5GB
                                   </p>
                                 </div>
                               </label>
@@ -1004,7 +1280,10 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                               {videoFile && (
                                 <div className="mt-4 space-y-3 rounded-lg border bg-background p-3">
                                   <div className="flex items-center justify-between text-sm">
-                                    <span className="font-medium truncate" title={videoFile.name}>
+                                    <span
+                                      className="font-medium truncate"
+                                      title={videoFile.name}
+                                    >
                                       {videoFile.name}
                                     </span>
                                     <Badge variant="outline">{videoSize}</Badge>
@@ -1028,11 +1307,13 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                             <div className="rounded-lg bg-muted/30 p-3 text-xs text-muted-foreground space-y-2">
                               <div className="flex items-center gap-2">
                                 <CheckCircle2 className="h-4 w-4 text-orange-500" />
-                                High-quality uploads help students stay engaged. Aim for 1080p MP4 when possible.
+                                High-quality uploads help students stay engaged.
+                                Aim for 1080p MP4 when possible.
                               </div>
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-orange-500" />
-                                Duration is required for accurate progress tracking and learner expectations.
+                                Duration is required for accurate progress
+                                tracking and learner expectations.
                               </div>
                             </div>
                           </div>
@@ -1042,18 +1323,25 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                           <Button
                             variant="outline"
                             onClick={() => {
-                              setShowAddVideo(null)
-                              setVideoFile(null)
-                              setVideoPreviewUrl(null)
-                              setVideoSize(null)
-                              setVideoError(null)
-                              setNewVideo({ title: "", duration: undefined, autoDetectDuration: true })
+                              setShowAddVideo(null);
+                              setVideoFile(null);
+                              setVideoPreviewUrl(null);
+                              setVideoSize(null);
+                              setVideoError(null);
+                              setNewVideo({
+                                title: "",
+                                duration: undefined,
+                                autoDetectDuration: true,
+                              });
                             }}
                             disabled={isUploading}
                           >
                             Cancel
                           </Button>
-                          <Button onClick={handleAddVideo} disabled={isUploading}>
+                          <Button
+                            onClick={handleAddVideo}
+                            disabled={isUploading}
+                          >
                             {isUploading ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1074,9 +1362,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   <div className="flex space-x-2">
                     <Select
                       value={course.status}
-                      onValueChange={(value: "draft" | "published" | "archived") =>
-                        handleUpdateCourseStatus(course._id, value)
-                      }
+                      onValueChange={(
+                        value: "draft" | "published" | "archived"
+                      ) => handleUpdateCourseStatus(course._id, value)}
                     >
                       <SelectTrigger className="flex-1">
                         <SelectValue />
@@ -1100,8 +1388,8 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
         <Dialog
           open={!!selectedCourse}
           onOpenChange={() => {
-            setSelectedCourse(null)
-            setIsEditingCourse(false)
+            setSelectedCourse(null);
+            setIsEditingCourse(false);
           }}
         >
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
@@ -1109,14 +1397,20 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
               <DialogTitle className="flex items-center justify-between">
                 <span>{selectedCourse.title}</span>
                 {!isEditingCourse && (
-                  <Button size="sm" variant="outline" onClick={() => startEditingCourse(selectedCourse)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => startEditingCourse(selectedCourse)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit Course
                   </Button>
                 )}
               </DialogTitle>
               <DialogDescription>
-                {isEditingCourse ? "Edit course details" : "Course details and video management"}
+                {isEditingCourse
+                  ? "Edit course details"
+                  : "Course details and video management"}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6 max-h-[70vh] overflow-y-auto">
@@ -1124,38 +1418,66 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Course Title *</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Course Title *
+                      </label>
                       <Input
                         value={editCourseData.title || ""}
-                        onChange={(e) => setEditCourseData({ ...editCourseData, title: e.target.value })}
+                        onChange={(e) =>
+                          setEditCourseData({
+                            ...editCourseData,
+                            title: e.target.value,
+                          })
+                        }
                         placeholder="Enter course title"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Category</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Category
+                      </label>
                       <Input
                         value={editCourseData.category || ""}
-                        onChange={(e) => setEditCourseData({ ...editCourseData, category: e.target.value })}
+                        onChange={(e) =>
+                          setEditCourseData({
+                            ...editCourseData,
+                            category: e.target.value,
+                          })
+                        }
                         placeholder="e.g., Web Development, Design"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Short Description</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Short Description
+                    </label>
                     <Input
                       value={editCourseData.shortDescription || ""}
-                      onChange={(e) => setEditCourseData({ ...editCourseData, shortDescription: e.target.value })}
+                      onChange={(e) =>
+                        setEditCourseData({
+                          ...editCourseData,
+                          shortDescription: e.target.value,
+                        })
+                      }
                       placeholder="Brief course summary (max 200 characters)"
                       maxLength={200}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Full Description *</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Full Description *
+                    </label>
                     <Textarea
                       value={editCourseData.description || ""}
-                      onChange={(e) => setEditCourseData({ ...editCourseData, description: e.target.value })}
+                      onChange={(e) =>
+                        setEditCourseData({
+                          ...editCourseData,
+                          description: e.target.value,
+                        })
+                      }
                       placeholder="Enter detailed course description"
                       rows={4}
                     />
@@ -1163,7 +1485,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Type</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Type
+                      </label>
                       <Select
                         value={editCourseData.type}
                         onValueChange={(value: "free" | "paid") =>
@@ -1181,23 +1505,35 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                     </div>
                     {editCourseData.type === "paid" && (
                       <div>
-                        <label className="block text-sm font-medium mb-2">Price (₹)</label>
+                        <label className="block text-sm font-medium mb-2">
+                          Price (₹)
+                        </label>
                         <Input
                           type="number"
                           value={editCourseData.price || ""}
-                          onChange={(e) => setEditCourseData({ ...editCourseData, price: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            setEditCourseData({
+                              ...editCourseData,
+                              price: Number(e.target.value) || 0,
+                            })
+                          }
                           placeholder="Enter price"
                           min="0"
                         />
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium mb-2">Duration (hours)</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Duration (hours)
+                      </label>
                       <Input
                         type="number"
                         value={editCourseData.estimatedDuration || ""}
                         onChange={(e) =>
-                          setEditCourseData({ ...editCourseData, estimatedDuration: Number(e.target.value) || 0 })
+                          setEditCourseData({
+                            ...editCourseData,
+                            estimatedDuration: Number(e.target.value) || 0,
+                          })
                         }
                         placeholder="Est. hours"
                         min="0"
@@ -1208,23 +1544,33 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Course Thumbnail</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Course Thumbnail
+                      </label>
                       <div className="space-y-2">
                         <FileUploadDialog
                           type="image"
                           currentUrl={editCourseData.thumbnail}
                           onFileSelect={handleThumbnailUpload}
                           trigger={
-                            <Button type="button" variant="outline" className="w-full bg-transparent">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full bg-transparent"
+                            >
                               <ImageIcon className="h-4 w-4 mr-2" />
-                              {editCourseData.thumbnail ? "Change Thumbnail" : "Upload Thumbnail"}
+                              {editCourseData.thumbnail
+                                ? "Change Thumbnail"
+                                : "Upload Thumbnail"}
                             </Button>
                           }
                         />
                         {editCourseData.thumbnail && (
                           <div className="relative">
                             <img
-                              src={editCourseData.thumbnail || "/placeholder.svg"}
+                              src={
+                                editCourseData.thumbnail || "/placeholder.svg"
+                              }
                               alt="Thumbnail preview"
                               className="w-full h-24 object-cover rounded border"
                             />
@@ -1233,16 +1579,24 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Preview Video</label>
+                      <label className="block text-sm font-medium mb-2">
+                        Preview Video
+                      </label>
                       <div className="space-y-2">
                         <FileUploadDialog
                           type="video"
                           currentUrl={editCourseData.previewVideo}
                           onFileSelect={handlePreviewVideoUpload}
                           trigger={
-                            <Button type="button" variant="outline" className="w-full bg-transparent">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full bg-transparent"
+                            >
                               <Video className="h-4 w-4 mr-2" />
-                              {editCourseData.previewVideo ? "Change Preview Video" : "Upload Preview Video"}
+                              {editCourseData.previewVideo
+                                ? "Change Preview Video"
+                                : "Upload Preview Video"}
                             </Button>
                           }
                         />
@@ -1260,13 +1614,17 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Learning Outcomes</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Learning Outcomes
+                    </label>
                     <Textarea
                       value={editCourseData.learningOutcomes?.join("\n") || ""}
                       onChange={(e) =>
                         setEditCourseData({
                           ...editCourseData,
-                          learningOutcomes: e.target.value.split("\n").filter((item) => item.trim()),
+                          learningOutcomes: e.target.value
+                            .split("\n")
+                            .filter((item) => item.trim()),
                         })
                       }
                       placeholder="What will students learn? (one per line)\ne.g., Build responsive websites\nMaster React fundamentals"
@@ -1275,13 +1633,17 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Prerequisites</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Prerequisites
+                    </label>
                     <Textarea
                       value={editCourseData.prerequisites?.join("\n") || ""}
                       onChange={(e) =>
                         setEditCourseData({
                           ...editCourseData,
-                          prerequisites: e.target.value.split("\n").filter((item) => item.trim()),
+                          prerequisites: e.target.value
+                            .split("\n")
+                            .filter((item) => item.trim()),
                         })
                       }
                       placeholder="What should students know beforehand? (one per line)\ne.g., Basic HTML/CSS knowledge\nFamiliarity with JavaScript"
@@ -1290,7 +1652,9 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Tags</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Tags
+                    </label>
                     <Input
                       value={editCourseData.tags?.join(", ") || ""}
                       onChange={(e) =>
@@ -1307,7 +1671,10 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                   </div>
 
                   <div className="flex justify-end space-x-2 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setIsEditingCourse(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingCourse(false)}
+                    >
                       Cancel
                     </Button>
                     <Button onClick={handleEditCourse}>Save Changes</Button>
@@ -1320,22 +1687,28 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                       <h3 className="font-semibold mb-2">Course Information</h3>
                       <div className="space-y-2 text-sm">
                         <div>
-                          <span className="font-medium">Category:</span> {selectedCourse.category || "Not specified"}
+                          <span className="font-medium">Category:</span>{" "}
+                          {selectedCourse.category || "Not specified"}
                         </div>
                         <div>
-                          <span className="font-medium">Duration:</span> {selectedCourse.estimatedDuration || 0} hours
+                          <span className="font-medium">Duration:</span>{" "}
+                          {selectedCourse.estimatedDuration || 0} hours
                         </div>
                         <div>
-                          <span className="font-medium">Price:</span> Rs.{selectedCourse.price}
+                          <span className="font-medium">Price:</span> Rs.
+                          {selectedCourse.price}
                         </div>
                         <div>
-                          <span className="font-medium">Type:</span> {selectedCourse.type}
+                          <span className="font-medium">Type:</span>{" "}
+                          {selectedCourse.type}
                         </div>
-                        {selectedCourse.tags && selectedCourse.tags.length > 0 && (
-                          <div>
-                            <span className="font-medium">Tags:</span> {selectedCourse.tags.join(", ")}
-                          </div>
-                        )}
+                        {selectedCourse.tags &&
+                          selectedCourse.tags.length > 0 && (
+                            <div>
+                              <span className="font-medium">Tags:</span>{" "}
+                              {selectedCourse.tags.join(", ")}
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -1353,57 +1726,75 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
 
                   <div>
                     <h3 className="font-semibold mb-2">Description</h3>
-                    <p className="text-gray-600">{selectedCourse.description}</p>
+                    <p className="text-gray-600">
+                      {selectedCourse.description}
+                    </p>
                   </div>
 
                   {selectedCourse.shortDescription && (
                     <div>
                       <h3 className="font-semibold mb-2">Short Description</h3>
-                      <p className="text-gray-600">{selectedCourse.shortDescription}</p>
+                      <p className="text-gray-600">
+                        {selectedCourse.shortDescription}
+                      </p>
                     </div>
                   )}
 
-                  {selectedCourse.learningOutcomes && selectedCourse.learningOutcomes.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Learning Outcomes</h3>
-                      <ul className="list-disc list-inside space-y-1 text-gray-600">
-                        {selectedCourse.learningOutcomes.map((outcome, index) => (
-                          <li key={index}>{outcome}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {selectedCourse.learningOutcomes &&
+                    selectedCourse.learningOutcomes.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-2">
+                          Learning Outcomes
+                        </h3>
+                        <ul className="list-disc list-inside space-y-1 text-gray-600">
+                          {selectedCourse.learningOutcomes.map(
+                            (outcome, index) => (
+                              <li key={index}>{outcome}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
 
-                  {selectedCourse.prerequisites && selectedCourse.prerequisites.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-2">Prerequisites</h3>
-                      <ul className="list-disc list-inside space-y-1 text-gray-600">
-                        {selectedCourse.prerequisites.map((prereq, index) => (
-                          <li key={index}>{prereq}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {selectedCourse.prerequisites &&
+                    selectedCourse.prerequisites.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-2">Prerequisites</h3>
+                        <ul className="list-disc list-inside space-y-1 text-gray-600">
+                          {selectedCourse.prerequisites.map((prereq, index) => (
+                            <li key={index}>{prereq}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                 </>
               )}
 
               <div>
-                <h3 className="font-semibold mb-4">Videos ({selectedCourse.videos?.length || 0})</h3>
-                {!selectedCourse.videos || selectedCourse.videos.length === 0 ? (
+                <h3 className="font-semibold mb-4">
+                  Videos ({selectedCourse.videos?.length || 0})
+                </h3>
+                {!selectedCourse.videos ||
+                selectedCourse.videos.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     No videos uploaded yet. Add your first video to get started.
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {selectedCourse.videos.map((video, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <Play className="h-4 w-4 text-orange-500" />
                           <div>
                             <p className="font-medium">{video.title}</p>
                             <p className="text-sm text-gray-500">
                               Duration: {Math.floor(video.duration / 60)}:
-                              {(video.duration % 60).toString().padStart(2, "0")}
+                              {(video.duration % 60)
+                                .toString()
+                                .padStart(2, "0")}
                             </p>
                           </div>
                         </div>
@@ -1417,23 +1808,26 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
                             <Video className="h-3 w-3" />
                           </Button>
                           <Button
-  variant="destructive"
-  disabled={removingVideo[selectedCourse._id] === index}
-  onClick={() => handleRemoveVideo(selectedCourse._id, index)}
->
-  {removingVideo[selectedCourse._id] === index ? (
-    <>
-      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      Removing...
-    </>
-  ) : (
-    <>
-      <Trash2 className="mr-2 h-4 w-4" />
-      Remove
-    </>
-  )}
-</Button>
-
+                            variant="destructive"
+                            disabled={
+                              removingVideo[selectedCourse._id] === index
+                            }
+                            onClick={() =>
+                              handleRemoveVideo(selectedCourse._id, index)
+                            }
+                          >
+                            {removingVideo[selectedCourse._id] === index ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Removing...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remove
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -1446,36 +1840,48 @@ const setVideoRemoving = (courseId: string, index: number | null) =>
       )}
 
       {/* Video Watching Dialog */}
-      {selectedCourse && watchingVideoIndex !== null && selectedCourse.videos?.[watchingVideoIndex] && (
-        <Dialog open={watchingVideoIndex !== null} onOpenChange={() => setWatchingVideoIndex(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle>Watch Video: {selectedCourse.videos[watchingVideoIndex].title}</DialogTitle>
-              <DialogDescription>Admin preview of course video</DialogDescription>
-            </DialogHeader>
-            <div className="mt-4">
-      {previewLoading ? (
-        <div className="w-full aspect-video bg-black flex flex-col items-center justify-center text-white space-y-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          <p>Loading secure video...</p>
-        </div>
-      ) : (
-        <VideoPlayer
-          lectureId={`${selectedCourse._id}_${watchingVideoIndex}`}
-          videoUrl={previewVideoUrl || selectedCourse.videos[watchingVideoIndex].videoUrl}
-          title={selectedCourse.videos[watchingVideoIndex].title}
-          autoPlay={true}
-        />
-      )}
-      {previewError && (
-        <p className="text-xs text-red-500 mt-2">{previewError}</p>
-      )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {selectedCourse &&
+        watchingVideoIndex !== null &&
+        selectedCourse.videos?.[watchingVideoIndex] && (
+          <Dialog
+            open={watchingVideoIndex !== null}
+            onOpenChange={() => setWatchingVideoIndex(null)}
+          >
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>
+                  Watch Video: {selectedCourse.videos[watchingVideoIndex].title}
+                </DialogTitle>
+                <DialogDescription>
+                  Admin preview of course video
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4">
+                {previewLoading ? (
+                  <div className="w-full aspect-video bg-black flex flex-col items-center justify-center text-white space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    <p>Loading secure video...</p>
+                  </div>
+                ) : (
+                  <VideoPlayer
+                    lectureId={`${selectedCourse._id}_${watchingVideoIndex}`}
+                    videoUrl={
+                      previewVideoUrl ||
+                      selectedCourse.videos[watchingVideoIndex].videoUrl
+                    }
+                    title={selectedCourse.videos[watchingVideoIndex].title}
+                    autoPlay={true}
+                  />
+                )}
+                {previewError && (
+                  <p className="text-xs text-red-500 mt-2">{previewError}</p>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
     </div>
-  )
-}
+  );
+};
 
-export default SimplifiedCourseManager
+export default SimplifiedCourseManager;
