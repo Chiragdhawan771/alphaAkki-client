@@ -53,6 +53,10 @@ const SimplifiedCourseManager: React.FC = () => {
   const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [removingVideo, setRemovingVideo] = useState<Record<string, number | null>>({});
+const setVideoRemoving = (courseId: string, index: number | null) =>
+  setRemovingVideo(prev => ({ ...prev, [courseId]: index }));
+
   const { toast } = useToast()
 
   // Course creation form
@@ -392,23 +396,34 @@ const SimplifiedCourseManager: React.FC = () => {
     }
   }
 
-  const handleRemoveVideo = async (courseId: string, videoIndex: number) => {
-    try {
-      const updatedCourse = await simplifiedCourseService.removeVideo(courseId, videoIndex)
-      setCourses(courses.map((course) => (course._id === courseId ? updatedCourse : course)))
+ const handleRemoveVideo = async (courseId: string, videoIndex: number) => {
+  try {
+    setVideoRemoving(courseId, videoIndex);
 
-      toast({
-        title: "Success!",
-        description: "Video removed successfully",
-      })
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to remove video",
-        variant: "destructive",
-      })
-    }
+    await simplifiedCourseService.removeVideo(courseId, videoIndex);
+
+    // Option A: refetch full list to stay consistent with your fetchCourses()
+    await fetchCourses();
+
+    // Option B: local update without refetch:
+    // setCourses(prev => prev.map(c => 
+    //   c._id === courseId
+    //     ? { ...c, videos: (c.videos || []).filter((_, i) => i !== videoIndex) }
+    //     : c
+    // ));
+
+    toast({ title: "Removed", description: "Video deleted successfully" });
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error?.message || "Failed to delete video",
+      variant: "destructive",
+    });
+  } finally {
+    setVideoRemoving(courseId, null);
   }
+};
+
 
   const handleUpdateCourseStatus = async (courseId: string, status: "draft" | "published" | "archived") => {
     try {
@@ -1402,13 +1417,23 @@ const SimplifiedCourseManager: React.FC = () => {
                             <Video className="h-3 w-3" />
                           </Button>
                           <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRemoveVideo(selectedCourse._id, index)}
-                            title="Remove Video"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+  variant="destructive"
+  disabled={removingVideo[selectedCourse._id] === index}
+  onClick={() => handleRemoveVideo(selectedCourse._id, index)}
+>
+  {removingVideo[selectedCourse._id] === index ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Removing...
+    </>
+  ) : (
+    <>
+      <Trash2 className="mr-2 h-4 w-4" />
+      Remove
+    </>
+  )}
+</Button>
+
                         </div>
                       </div>
                     ))}
