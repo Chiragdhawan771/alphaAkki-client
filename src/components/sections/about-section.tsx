@@ -138,7 +138,7 @@ export function AboutSection() {
                         Years Experience
                       </div>
                     </div>
-                    <div className="text-center">
+                    {/* <div className="text-center">
                       <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {aboutStats.courses}
                       </div>
@@ -153,7 +153,7 @@ export function AboutSection() {
                       <div className="text-sm text-gray-600 font-medium">
                         Students Taught
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 <Link href="/">

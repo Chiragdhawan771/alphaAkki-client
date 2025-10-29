@@ -23,12 +23,7 @@ const contactInfo: ContactInfo[] = [
     description: "Send us a message",
     value: "alphaakkicourse@gmail.com",
   },
-  {
-    icon: "📱",
-    title: "Phone",
-    description: "Call us directly",
-    value: "+91 7011311405",
-  },
+
 ]
 
 export function ContactSection() {

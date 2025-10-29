@@ -2,11 +2,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { Header } from "@/components/layout/header"
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50">
       {/* Header */}
+      <Header/>
       <div className="bg-gradient-to-r from-orange-600 to-red-700 py-16 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
           <div className="text-center">
@@ -36,7 +38,7 @@ export default function PrivacyPolicy() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Effective Date</h2>
-                  <p className="text-gray-600">Last updated: [Insert Date]</p>
+                  {/* <p className="text-gray-600">Last updated: [Insert Date]</p> */}
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed">
@@ -197,7 +199,7 @@ export default function PrivacyPolicy() {
                   className="h-12 px-8 bg-white text-orange-600 hover:bg-gray-100 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   asChild
                 >
-                  <a href="mailto:collabalphaakki@gmail.com">collabalphaakki@gmail.com</a>
+                  <a href="mailto:alphaakkicourse@gmail.com">alphaakkicourse@gmail.com</a>
                 </Button>
                 <Button
                   size="lg"

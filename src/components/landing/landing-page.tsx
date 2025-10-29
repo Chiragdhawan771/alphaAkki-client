@@ -9,7 +9,7 @@ export function LandingPage() {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <SuccessStoriesSection />
+        {/* <SuccessStoriesSection /> */}
         <NewsletterSection />
       </main>
       <Footer />

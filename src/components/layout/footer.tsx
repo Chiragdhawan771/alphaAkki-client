@@ -17,9 +17,7 @@ export function Footer() {
               </div>
               <p className="text-gray-300 text-base leading-relaxed mb-6 max-w-md">
                 Transform your career with AlphaAkki – the ultimate platform for YouTubers and digital creators. Learn
-                YouTube growth, video editing, content strategy, and monetization to turn passion into profit. Join
-                50,000+ creators building loyal audiences and thriving careers with step-by-step guidance and expert
-                support.
+                YouTube growth, video editing, content strategy, and monetization to turn passion into profit. 
               </p>
               <div className="flex items-center space-x-4">
                 <a

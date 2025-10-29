@@ -96,7 +96,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
       </div>
 
-      <div className="container relative mx-auto px-4 py-4 sm:py-8 md:py-16 lg:py-0 max-w-7xl">
+      <div className="container relative mx-auto px-4 py-4 sm:py-8 md:py-16 lg:py-0 max-w-7xl ">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16 items-center min-h-[calc(100vh-8rem)]">
           {/* Left Content */}
           <div className="flex flex-col space-y-6 sm:space-y-8 order-2 lg:order-1">
@@ -114,9 +114,7 @@ export function HeroSection() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-xl leading-relaxed">
-              Transform your career with cutting-edge courses in web
-              development, e-commerce, UX/UI design, and digital marketing.
-              Learn from industry experts and build real-world projects.
+             Unlock your YouTube potential with proven strategies and insider insights into how the algorithm truly works. Learn how to create engaging content, optimize for growth, and build a loyal audience. Gain practical, real-world techniques from an experienced YouTuber and start growing your channel with confidence.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -147,7 +145,7 @@ export function HeroSection() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-6 sm:pt-8">
+            {/* <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-6 sm:pt-8">
               <div className="text-center sm:text-left">
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   50K+
@@ -172,7 +170,7 @@ export function HeroSection() {
                   Student Rating
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Right Visual - Hero Image */}
@@ -181,7 +179,7 @@ export function HeroSection() {
               {/* Main hero image */}
               <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-orange-100 to-blue-100">
                 <Image
-                  src="/assets/home-page-cover.png"
+                  src="/assets/home-cover.png"
                   alt="AlphaAkki - Learn and grow with expert-led courses"
                   fill
                   className="object-cover"
@@ -249,7 +247,7 @@ export function HeroSection() {
         </div>
 
         {/* Featured Courses Section */}
-        <div className="mt-16 lg:mt-24" id="featured-courses">
+        <div className="mt-16 lg:mt-24 py-4" id="featured-courses">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Featured{" "}

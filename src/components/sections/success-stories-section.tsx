@@ -37,27 +37,28 @@ const featuredStory: FeaturedStory = {
 
 const personalStories: PersonalStory[] = [
   {
-    name: "Sarah Chen",
-    description: "AlphaAkki's web development track helped me transition from marketing to full-stack development. The hands-on projects and mentorship were game-changers for my career.",
-    role: "Full-Stack Developer",
-    company: "Google",
+    name: "Rohit Sharma",
+    description: "AlphaAkki’s YouTube growth strategies helped me go from 0 to 50,000 subscribers in just 4 months. The breakdown of content strategy and algorithm tips gave me clarity I never had before.",
+    role: "Content Creator",
+    company: "YouTube",
     image: "gradient-from-blue-400-to-indigo-500"
   },
   {
-    name: "Marcus Johnson",
-    description: "The UI/UX design course at AlphaAkki gave me the skills and confidence to land my dream job. The real-world projects made all the difference in my portfolio.",
-    role: "Senior UX Designer",
-    company: "Microsoft",
+    name: "Neha Verma",
+    description: "I always struggled with consistency and content planning. After this course, I not only grew my channel but built a real community. The step-by-step guidance is what makes this course unique.",
+    role: "Lifestyle & Vlog Creator",
+    company: "YouTube",
     image: "gradient-from-pink-400-to-rose-500"
   },
   {
-    name: "Priya Patel",
-    description: "Thanks to AlphaAkki's data science track, I successfully pivoted from finance to machine learning. The instructors are world-class and truly care about student success.",
-    role: "ML Engineer",
-    company: "Netflix",
+    name: "Aditya Singh",
+    description: "This course helped me understand how the YouTube algorithm actually works. I optimized thumbnails, titles, and audience retention — now my videos finally get recommended!",
+    role: "Tech Reviewer",
+    company: "YouTube",
     image: "gradient-from-purple-400-to-violet-500"
   }
 ]
+
 
 export function SuccessStoriesSection() {
   return (
@@ -165,7 +166,6 @@ export function SuccessStoriesSection() {
               </Card>
             ))}
             
-            {/* View more button */}
             <div className="text-center pt-4">
               <Button variant="outline" className="h-12 px-6 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full font-semibold">
                 View More Stories
